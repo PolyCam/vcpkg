@@ -88,3 +88,5 @@ file(GLOB_RECURSE PLUGINFO_FILES_DEBUG ${CURRENT_PACKAGES_DIR}/debug/lib/usd/*/r
 foreach(PLUGINFO ${PLUGINFO_FILES} ${PLUGINFO_FILES_DEBUG})
     file_replace_regex(${PLUGINFO} [=["LibraryPath": "../../([a-zA-Z0-9_]+).dll"]=] [=["LibraryPath": "../../../bin/\1.dll"]=])
 endforeach()
+
+file(COPY ${CURRENT_INSTALLED_DIR}/share/pxr DESTINATION ${CURRENT_INSTALLED_DIR}/debug/cmake)
