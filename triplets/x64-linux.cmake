@@ -5,6 +5,7 @@ set(VCPKG_LIBRARY_LINKAGE static)
 if(PORT MATCHES "usd")
     set(VCPKG_LIBRARY_LINKAGE dynamic)
 endif()
+
 if(PORT MATCHES "tbb")
     set(VCPKG_LIBRARY_LINKAGE dynamic)
 endif()
