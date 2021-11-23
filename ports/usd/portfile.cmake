@@ -51,7 +51,7 @@ file(
         "${CURRENT_PACKAGES_DIR}/pxrConfig.cmake"
         "${CURRENT_PACKAGES_DIR}/cmake/pxrConfig.cmake")
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH cmake TARGET_PATH "${CURRENT_PACKAGES_DIR}/cmake")
+vcpkg_fixup_cmake_targets(CONFIG_PATH cmake TARGET_PATH share/pxr)
 
 vcpkg_copy_pdbs()
 
