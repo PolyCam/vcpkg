@@ -14,7 +14,7 @@ vcpkg_from_github(
 
 if(VCPKG_TARGET_IS_WINDOWS)
   if(VCPKG_PLATFORM_TOOLSET MATCHES "v142")
-    set(MSVS_VERSION 2017)  #they are abi compatible, so it should work
+    set(MSVS_VERSION 2019)
   elseif(VCPKG_PLATFORM_TOOLSET MATCHES "v141")
     set(MSVS_VERSION 2017)
   else()
@@ -55,8 +55,9 @@ else()
         AUTOCONFIG
     )
     vcpkg_install_make()
+    vcpkg_fixup_pkgconfig()
 endif()
 
 configure_file(${CURRENT_PORT_DIR}/usage ${CURRENT_PACKAGES_DIR}/share/${PORT}/usage @ONLY)
-file(INSTALL ${CURRENT_PORT_DIR}/vcpkg-cmake-wrapper.cmake DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT})
+configure_file(${CURRENT_PORT_DIR}/vcpkg-cmake-wrapper.cmake ${CURRENT_PACKAGES_DIR}/share/${PORT}/vcpkg-cmake-wrapper.cmake @ONLY)
 file(INSTALL ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
