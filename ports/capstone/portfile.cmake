@@ -8,48 +8,53 @@ vcpkg_from_github(
 
 string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" CS_BUILD_STATIC)
 string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "dynamic" CS_BUILD_SHARED)
+string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "static" STATIC_CRT)
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
-    "arm"         CAPSTONE_ARM_SUPPORT
-    "arm64"       CAPSTONE_ARM64_SUPPORT
-    "evm"         CAPSTONE_EVM_SUPPORT
-    "m680x"       CAPSTONE_M680X_SUPPORT
-    "m68k"        CAPSTONE_M68K_SUPPORT
-    "mips"        CAPSTONE_MIPS_SUPPORT
-    "osxkernel"   CAPSTONE_OSXKERNEL_SUPPORT
-    "ppc"         CAPSTONE_PPC_SUPPORT
-    "sparc"       CAPSTONE_SPARC_SUPPORT
-    "sysz"        CAPSTONE_SYSZ_SUPPORT
-    "tms320c64x"  CAPSTONE_TMS320C64X_SUPPORT
-    "x86"         CAPSTONE_X86_SUPPORT
-    "x86-reduce"  CAPSTONE_X86_REDUCE
-    "xcore"       CAPSTONE_XCORE_SUPPORT
-    "diet"        CAPSTONE_BUILD_DIET
+    FEATURES
+        "arm"         CAPSTONE_ARM_SUPPORT
+        "arm64"       CAPSTONE_ARM64_SUPPORT
+        "evm"         CAPSTONE_EVM_SUPPORT
+        "m680x"       CAPSTONE_M680X_SUPPORT
+        "m68k"        CAPSTONE_M68K_SUPPORT
+        "mips"        CAPSTONE_MIPS_SUPPORT
+        "osxkernel"   CAPSTONE_OSXKERNEL_SUPPORT
+        "ppc"         CAPSTONE_PPC_SUPPORT
+        "sparc"       CAPSTONE_SPARC_SUPPORT
+        "sysz"        CAPSTONE_SYSZ_SUPPORT
+        "tms320c64x"  CAPSTONE_TMS320C64X_SUPPORT
+        "x86"         CAPSTONE_X86_SUPPORT
+        "x86-reduce"  CAPSTONE_X86_REDUCE
+        "xcore"       CAPSTONE_XCORE_SUPPORT
+        "diet"        CAPSTONE_BUILD_DIET
 )
 
-vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
+if ("osxkernel" IN_LIST FEATURES AND NOT VCPKG_TARGET_IS_OSX)
+    message(FATAL_ERROR "Feature 'osxkernel' only supported in OSX")
+endif()
+
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
         -DCAPSTONE_BUILD_STATIC=${CS_BUILD_STATIC}
         -DCAPSTONE_BUILD_SHARED=${CS_BUILD_SHARED}
         -DCAPSTONE_BUILD_TESTS=OFF
         -DCAPSTONE_BUILD_CSTOOL=OFF
-        -DCAPSTONE_BUILD_STATIC_RUNTIME=OFF
         -DCAPSTONE_X86_ONLY=OFF
+        -DCAPSTONE_BUILD_STATIC_RUNTIME=${STATIC_CRT}
         ${FEATURE_OPTIONS}
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
 vcpkg_copy_pdbs()
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-file(GLOB EXES ${CURRENT_PACKAGES_DIR}/bin/*.exe ${CURRENT_PACKAGES_DIR}/debug/bin/*.exe)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+file(GLOB EXES "${CURRENT_PACKAGES_DIR}/bin/*.exe" "${CURRENT_PACKAGES_DIR}/debug/bin/*.exe")
 if(EXES)
     file(REMOVE ${EXES})
 endif()
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-    file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/bin ${CURRENT_PACKAGES_DIR}/debug/bin)
+    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
 endif()
 
-file(INSTALL ${SOURCE_PATH}/LICENSE.TXT DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
+file(INSTALL "${SOURCE_PATH}/LICENSE.TXT" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)

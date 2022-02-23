@@ -62,7 +62,7 @@ Use `"overrides"` to force specific versions in a package-by-package basis.
         { "name": "boost-core", "version": "1.72" },
         { "name": "boost-integer", "version": "1.72" },
         { "name": "boost-io", "version": "1.72" },
-        { "name": "boost-tuple", "version": "1.72" }     
+        { "name": "boost-tuple", "version": "1.72" }
     ]
 }
 ```
@@ -147,7 +147,7 @@ git rev-parse HEAD
 The output of that command will be the commit SHA you need to put as the `"builtin-baseline"` in your project's manifest file. Copy the 40-hex digits and save them to use later in your manifest file.
 
 ### Step 5: (Optional) Go back to the main repository branch
-Once your changes have been commited locally, you can refer to the commit SHA regardless of the repository branch you're working on. So, let's go back to the main vcpkg repository branch.
+Once your changes have been committed locally, you can refer to the commit SHA regardless of the repository branch you're working on. So, let's go back to the main vcpkg repository branch.
 
 ```
 git checkout master
@@ -166,7 +166,7 @@ git checkout master
 
 In this example, commit SHA `9b5cf7c3d9376ddf43429671282972ec4f99aa85` is the commit ID with the modified baseline. Even when a different branch (`master` in this case) is checked out, Git is able to find the commit as long as the branch with the modified baseline exists (the `custom-boost-baseline` branch we created in step 1).
 
-We run `vcpkg --feature-flags="manifests,versions" install` in the directory containing our manifest file and the output looks like this:
+We run `vcpkg install` in the directory containing our manifest file and the output looks like this:
 
 ```
 The following packages will be built and installed:
