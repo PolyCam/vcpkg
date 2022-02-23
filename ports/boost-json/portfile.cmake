@@ -3,10 +3,22 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO boostorg/json
-    REF boost-1.75.0
-    SHA512 887a8758d247eb76b41526107e4006de7d18f107afc9692d95eb2ba7beb9cfa6d5f2e721523a8d4530aec38bd1f6eb0f6364aa05b5bf95f5428f4c9fa3d24b7c
+    REF boost-1.78.0
+    SHA512 245eb006392cea71fc4da0100a804cff0f4f0a63baf5e4d95ea3b8234a8b2a72344090ccf827a6334fe1819dc207d84a2c1709c62f71361a8e8824d84a51edab
     HEAD_REF master
 )
 
+file(READ "${SOURCE_PATH}/build/Jamfile" _contents)
+string(REPLACE "import ../../config/checks/config" "import ../config/checks/config" _contents "${_contents}")
+file(WRITE "${SOURCE_PATH}/build/Jamfile" "${_contents}")
+file(COPY "${CURRENT_INSTALLED_DIR}/share/boost-config/checks" DESTINATION "${SOURCE_PATH}/config")
+if(NOT DEFINED CURRENT_HOST_INSTALLED_DIR)
+    message(FATAL_ERROR "boost-json requires a newer version of vcpkg in order to build.")
+endif()
+include(${CURRENT_HOST_INSTALLED_DIR}/share/boost-build/boost-modular-build.cmake)
+boost_modular_build(
+    SOURCE_PATH ${SOURCE_PATH}
+    BOOST_CMAKE_FRAGMENT "${CMAKE_CURRENT_LIST_DIR}/b2-options.cmake"
+)
 include(${CURRENT_INSTALLED_DIR}/share/boost-vcpkg-helpers/boost-modular-headers.cmake)
 boost_modular_headers(SOURCE_PATH ${SOURCE_PATH})

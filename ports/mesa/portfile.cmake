@@ -1,14 +1,22 @@
 # Build-Depends: From X Window PR: zstd, drm (!windows), elfutils (!windows), wayland (!windows), wayland-protocols (!windows), xdamage, xshmfence (!windows), x11, xcb, xfixes, xext, xxf86vm, xrandr, xv, xvmc (!windows), egl-registry, opengl-registry, tool-meson
 # Required LLVM modules: LLVM (modules: bitwriter, core, coroutines, engine, executionengine, instcombine, mcdisassembler, mcjit, scalaropts, transformutils) found: YES 
 
-#patches are from https://github.com/pal1000/mesa-dist-win/tree/master/patches
-set(PATCHES dual-osmesa.patch
-            dual-osmesa-part2.patch
-            swravx512.patch
-            )
+# Patches are from https://github.com/pal1000/mesa-dist-win/tree/master/patches
+set(PATCHES
+    # Fix swrAVX512 build
+    swravx512-post-static-link.patch
+    # Fix swr build with MSVC
+    swr-msvc-2.patch
+    # Fix swr build with LLVM 13
+    swr-llvm13.patch
+    # Fix radv MSVC build with LLVM 13
+    radv-msvc-llvm13-2.patch
+    # Fix d3d10sw MSVC build
+    d3d10sw.patch
+)
 
 vcpkg_check_linkage(ONLY_DYNAMIC_CRT)
-IF(VCPKG_TARGET_IS_WINDOWS)
+if(VCPKG_TARGET_IS_WINDOWS)
     set(VCPKG_POLICY_DLLS_IN_STATIC_LIBRARY enabled) # some parts of this port can only build as a shared library.
 endif()
 
@@ -16,10 +24,11 @@ vcpkg_from_gitlab(
     GITLAB_URL https://gitlab.freedesktop.org
     OUT_SOURCE_PATH SOURCE_PATH
     REPO mesa/mesa
-    REF  df2977f871fc70ebd6be48c180d117189b5861b5 #v20.2.2
-    SHA512 6c51d817fe265ea6405c4e8afbb516f30cf697d00cf39f162473ea8a59c202bcdfbfe4b6f7c4a6fd2d4e98eb4a1604cb5e0a02558338bf415e53fe5421cbfbbe
-    HEAD_REF master # branch name
-    PATCHES ${PATCHES} #patch name
+    REF mesa-21.2.5
+    SHA512 a9ead27f08e862738938cf728928b7937ff37e4c26967f2e46e40a3c8419159397f75b2f4ce43f9b453b35bb3716df581087fb7ba8434fafdfab9488c3db6f92
+    FILE_DISAMBIGUATOR 1
+    HEAD_REF master
+    PATCHES ${PATCHES}
 ) 
 vcpkg_find_acquire_program(PYTHON3)
 get_filename_component(PYTHON3_DIR "${PYTHON3}" DIRECTORY)
@@ -115,9 +124,7 @@ list(APPEND MESA_OPTIONS -Dvalgrind=disabled)
 list(APPEND MESA_OPTIONS -Dglvnd=false)
 list(APPEND MESA_OPTIONS -Dglx=disabled)
 list(APPEND MESA_OPTIONS -Dgbm=disabled)
-#list(APPEND MESA_OPTIONS -Dosmesa=['gallium','classic']) # classic has compiler errors. 
-list(APPEND MESA_OPTIONS -Dosmesa=['gallium'])
-
+list(APPEND MESA_OPTIONS -Dosmesa=true)
 
 if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
     list(APPEND MESA_OPTIONS -Dshared-swr=false)
@@ -160,9 +167,13 @@ endif()
 
 list(APPEND MESA_OPTIONS -Dshared-glapi=enabled)  #shared GLAPI required when building two or more of the following APIs - opengl, gles1 gles2
 
-
 if(VCPKG_TARGET_IS_WINDOWS)
     list(APPEND MESA_OPTIONS -Dplatforms=['windows'])
+    list(APPEND MESA_OPTIONS -Dmicrosoft-clc=disabled)
+    if(NOT VCPKG_TARGET_IS_MINGW)
+        set(VCPKG_CXX_FLAGS "/D_CRT_DECLARE_NONSTDC_NAMES ${VCPKG_CXX_FLAGS}")
+        set(VCPKG_C_FLAGS "/D_CRT_DECLARE_NONSTDC_NAMES ${VCPKG_C_FLAGS}")
+    endif()
 endif()
 
 vcpkg_configure_meson(
@@ -176,14 +187,14 @@ vcpkg_configure_meson(
 vcpkg_install_meson()
 vcpkg_fixup_pkgconfig()
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/share)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
 
 #installed by egl-registry
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/include/KHR)
-file(REMOVE ${CURRENT_PACKAGES_DIR}/include/EGL/egl.h)
-file(REMOVE ${CURRENT_PACKAGES_DIR}/include/EGL/eglext.h)
-file(REMOVE ${CURRENT_PACKAGES_DIR}/include/EGL/eglplatform.h)
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/include/KHR")
+file(REMOVE "${CURRENT_PACKAGES_DIR}/include/EGL/egl.h")
+file(REMOVE "${CURRENT_PACKAGES_DIR}/include/EGL/eglext.h")
+file(REMOVE "${CURRENT_PACKAGES_DIR}/include/EGL/eglplatform.h")
 #installed by opengl-registry
 set(_double_files include/GL/glcorearb.h include/GL/glext.h include/GL/glxext.h 
     include/GLES/egl.h include/GLES/gl.h include/GLES/glext.h include/GLES/glplatform.h 
@@ -192,8 +203,8 @@ set(_double_files include/GL/glcorearb.h include/GL/glext.h include/GL/glxext.h
 list(TRANSFORM _double_files PREPEND "${CURRENT_PACKAGES_DIR}/")
 file(REMOVE ${_double_files})
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/include/GLES)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/include/GLES2)
-# # Handle copyright
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/include/GLES")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/include/GLES2")
+# Handle copyright
 file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/share/${PORT}")
 file(TOUCH "${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright")

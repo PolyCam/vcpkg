@@ -1,20 +1,22 @@
 {
   "name": "opencv3",
-  "version": "3.4.13",
+  "version": "3.4.16",
+  "port-version": 4,
   "description": "computer vision library",
   "homepage": "https://github.com/opencv/opencv",
+  "license": "BSD-3-Clause",
   "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    },
     "zlib"
   ],
-  "default-features": [
-    "dnn",
-    "jpeg",
-    "png",
-    "quirc",
-    "tiff",
-    "webp",
-    "openexr"
-  ],
+  "default-features": ["default-features"],
   "features": {
     "contrib": {
       "description": "opencv_contrib module",
@@ -25,9 +27,7 @@
         },
         {
           "name": "opencv3",
-          "features": [
-            "dnn"
-          ]
+          "features": ["dnn"]
         },
         {
           "name": "tesseract",
@@ -42,9 +42,23 @@
         "cudnn",
         {
           "name": "opencv3",
-          "features": [
-            "contrib"
-          ]
+          "features": ["contrib"]
+        }
+      ]
+    },
+    "default-features": {
+      "description": "Platform-dependent default features",
+      "dependencies": [
+        {
+          "name": "opencv3",
+          "default-features": false,
+          "features": ["dnn", "jpeg", "png", "quirc", "tiff", "webp"]
+        },
+        {
+          "name": "opencv3",
+          "default-features": false,
+          "features": ["gtk"],
+          "platform": "linux"
         }
       ]
     },
@@ -53,35 +67,39 @@
       "dependencies": [
         {
           "name": "opencv3",
-          "features": [
-            "flann"
-          ]
+          "features": ["flann"]
         }
       ]
     },
     "eigen": {
       "description": "Eigen support for opencv",
-      "dependencies": [
-        "eigen3"
-      ]
+      "dependencies": ["eigen3"]
     },
     "ffmpeg": {
       "description": "ffmpeg support for opencv",
       "dependencies": [
-        "ffmpeg"
+        {
+          "name": "ffmpeg",
+          "default-features": false,
+          "features": ["avcodec", "avformat", "swresample", "swscale"]
+        }
       ]
     },
     "flann": {
       "description": "opencv_flann module",
-      "dependencies": [
-        "protobuf"
-      ]
+      "dependencies": ["protobuf"]
     },
     "gdcm": {
       "description": "GDCM support for opencv",
-      "dependencies": [
-        "gdcm"
-      ]
+      "dependencies": ["gdcm"]
+    },
+    "gstreamer": {
+      "description": "gstreamer support for opencv",
+      "dependencies": ["gstreamer"]
+    },
+    "gtk": {
+      "description": "GTK support for opencv",
+      "dependencies": ["gtk"]
     },
     "halide": {
       "description": "Halide support for opencv",
@@ -93,9 +111,7 @@
         },
         {
           "name": "opencv3",
-          "features": [
-            "dnn"
-          ]
+          "features": ["dnn"]
         }
       ]
     },
@@ -104,37 +120,26 @@
     },
     "jasper": {
       "description": "JPEG 2000 support for opencv",
-      "dependencies": [
-        "jasper"
-      ]
+      "dependencies": ["jasper"]
     },
     "jpeg": {
       "description": "JPEG support for opencv",
-      "dependencies": [
-        "libjpeg-turbo"
-      ]
+      "dependencies": ["libjpeg-turbo"]
     },
     "lapack": {
       "description": "LAPACK support for opencv",
-      "dependencies": [
-        "blas",
-        "lapack"
-      ]
+      "dependencies": ["blas", "lapack"]
     },
     "nonfree": {
       "description": "allow nonfree and unredistributable libraries"
     },
     "openexr": {
       "description": "OpenEXR support for opencv",
-      "dependencies": [
-        "openexr"
-      ]
+      "dependencies": ["openexr"]
     },
     "opengl": {
       "description": "opengl support for opencv",
-      "dependencies": [
-        "opengl"
-      ]
+      "dependencies": ["opengl"]
     },
     "ovis": {
       "description": "opencv_ovis module",
@@ -142,17 +147,16 @@
         "ogre",
         {
           "name": "opencv3",
-          "features": [
-            "contrib"
-          ]
+          "features": ["contrib"]
         }
       ]
     },
     "png": {
       "description": "PNG support for opencv",
-      "dependencies": [
-        "libpng"
-      ]
+      "dependencies": ["libpng"]
+    },
+    "python": {
+      "description": "Python wrapper support for opencv"
     },
     "qt": {
       "description": "Qt GUI support for opencv",
@@ -165,9 +169,7 @@
     },
     "quirc": {
       "description": "Enable QR code module",
-      "dependencies": [
-        "quirc"
-      ]
+      "dependencies": ["quirc"]
     },
     "sfm": {
       "description": "opencv_sfm module",
@@ -178,35 +180,25 @@
         "glog",
         {
           "name": "opencv3",
-          "features": [
-            "contrib"
-          ]
+          "features": ["contrib"]
         }
       ]
     },
     "tbb": {
       "description": "Enable Intel Threading Building Blocks",
-      "dependencies": [
-        "tbb"
-      ]
+      "dependencies": ["tbb"]
     },
     "tiff": {
       "description": "TIFF support for opencv",
-      "dependencies": [
-        "tiff"
-      ]
+      "dependencies": ["tiff"]
     },
     "vtk": {
       "description": "vtk support for opencv",
-      "dependencies": [
-        "vtk"
-      ]
+      "dependencies": ["vtk"]
     },
     "webp": {
       "description": "WebP support for opencv",
-      "dependencies": [
-        "libwebp"
-      ]
+      "dependencies": ["libwebp"]
     },
     "world": {
       "description": "Compile to a single package support for opencv"
