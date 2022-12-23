@@ -1,8 +1,57 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a979145c0..2156163a8 100644
+index a979145c0..59a38aa8e 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -311,10 +311,6 @@ if (ANDROID)
+@@ -3,6 +3,14 @@
+ # ==================================================================================================
+ cmake_minimum_required(VERSION 3.19)
+ 
++set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
++set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_CXX_STANDARD_REQUIRED yes)
++
++if (IOS)
++    include(third_party/clang/iOS.cmake)
++endif()
++
+ # ==================================================================================================
+ # Project declaration
+ # ==================================================================================================
+@@ -62,33 +70,6 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
+     cmake_policy(SET CMP0074 NEW)
+ endif()
+ 
+-# ==================================================================================================
+-# Support for ccache
+-# ==================================================================================================
+-find_program(CCACHE_PROGRAM ccache)
+-if (CCACHE_PROGRAM)
+-    set(C_LAUNCHER   "${CCACHE_PROGRAM}")
+-    set(CXX_LAUNCHER "${CCACHE_PROGRAM}")
+-
+-    configure_file(build/launch-c.in   launch-c)
+-    configure_file(build/launch-cxx.in launch-cxx)
+-
+-    execute_process(COMMAND chmod a+rx
+-        "${CMAKE_BINARY_DIR}/launch-c"
+-        "${CMAKE_BINARY_DIR}/launch-cxx"
+-    )
+-
+-    if (CMAKE_GENERATOR STREQUAL "Xcode")
+-        set(CMAKE_XCODE_ATTRIBUTE_CC         "${CMAKE_BINARY_DIR}/launch-c")
+-        set(CMAKE_XCODE_ATTRIBUTE_CXX        "${CMAKE_BINARY_DIR}/launch-cxx")
+-        set(CMAKE_XCODE_ATTRIBUTE_LD         "${CMAKE_BINARY_DIR}/launch-c")
+-        set(CMAKE_XCODE_ATTRIBUTE_LDPLUSPLUS "${CMAKE_BINARY_DIR}/launch-cxx")
+-    else()
+-        set(CMAKE_C_COMPILER_LAUNCHER        "${CMAKE_BINARY_DIR}/launch-c")
+-        set(CMAKE_CXX_COMPILER_LAUNCHER      "${CMAKE_BINARY_DIR}/launch-cxx")
+-    endif()
+-endif()
+-
+ # ==================================================================================================
+ # Support Vim and Visual Studio Code by generating compile_commands.json
+ # ==================================================================================================
+@@ -311,10 +292,6 @@ if (ANDROID)
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Werror=unguarded-availability")
  endif()
  
@@ -13,7 +62,7 @@ index a979145c0..2156163a8 100644
  if (MSVC)
      # Since the "secure" replacements that MSVC suggests are not portable, disable
      # the deprecation warnings. Also disable warnings about use of POSIX functions (i.e. "unlink").
-@@ -345,24 +341,6 @@ if (NOT MSVC AND NOT IOS)
+@@ -345,24 +322,6 @@ if (NOT MSVC AND NOT IOS)
      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffunction-sections -fdata-sections")
  endif()
  
@@ -38,7 +87,7 @@ index a979145c0..2156163a8 100644
  if (WEBGL_PTHREADS)
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
  endif()
-@@ -491,6 +469,7 @@ if (FILAMENT_SUPPORTS_VULKAN)
+@@ -491,6 +450,7 @@ if (FILAMENT_SUPPORTS_VULKAN)
  endif()
  if (FILAMENT_SUPPORTS_METAL)
      set(MATC_API_FLAGS ${MATC_API_FLAGS} -a metal)
@@ -46,7 +95,7 @@ index a979145c0..2156163a8 100644
  endif()
  
  # Disable optimizations and enable debug info (preserves names in SPIR-V)
-@@ -582,10 +561,15 @@ endfunction()
+@@ -582,10 +542,15 @@ endfunction()
  # ==================================================================================================
  # Configuration for CMAKE_CROSSCOMPILING.
  # ==================================================================================================
@@ -66,7 +115,7 @@ index a979145c0..2156163a8 100644
  endif()
  
  # ==================================================================================================
-@@ -644,8 +628,6 @@ endfunction()
+@@ -644,8 +609,6 @@ endfunction()
  # ==================================================================================================
  
  # Common to all platforms
@@ -75,7 +124,7 @@ index a979145c0..2156163a8 100644
  add_subdirectory(${LIBRARIES}/filabridge)
  add_subdirectory(${LIBRARIES}/filaflat)
  add_subdirectory(${LIBRARIES}/filagui)
-@@ -672,9 +654,7 @@ add_subdirectory(${EXTERNAL}/smol-v/tnt)
+@@ -672,9 +635,7 @@ add_subdirectory(${EXTERNAL}/smol-v/tnt)
  add_subdirectory(${EXTERNAL}/benchmark/tnt)
  add_subdirectory(${EXTERNAL}/meshoptimizer/tnt)
  add_subdirectory(${EXTERNAL}/cgltf/tnt)
@@ -85,7 +134,7 @@ index a979145c0..2156163a8 100644
  add_subdirectory(${EXTERNAL}/getopt)
  
  if (FILAMENT_BUILD_FILAMAT OR IS_HOST_PLATFORM)
-@@ -698,11 +678,6 @@ endif()
+@@ -698,11 +659,6 @@ endif()
  
  set(FILAMENT_SAMPLES_BINARY_DIR ${PROJECT_BINARY_DIR}/samples)
  
@@ -97,7 +146,7 @@ index a979145c0..2156163a8 100644
  if (IS_HOST_PLATFORM)
      if (FILAMENT_SUPPORTS_OPENGL)
          add_subdirectory(${LIBRARIES}/bluegl)
-@@ -714,10 +689,6 @@ if (IS_HOST_PLATFORM)
+@@ -714,10 +670,6 @@ if (IS_HOST_PLATFORM)
  
      add_subdirectory(${FILAMENT}/samples)
  
@@ -108,7 +157,7 @@ index a979145c0..2156163a8 100644
      add_subdirectory(${EXTERNAL}/tinyexr/tnt)
  
      add_subdirectory(${TOOLS}/cmgen)
-@@ -735,7 +706,4 @@ if (IS_HOST_PLATFORM)
+@@ -735,7 +687,4 @@ if (IS_HOST_PLATFORM)
      add_subdirectory(${TOOLS}/uberz)
  endif()
  

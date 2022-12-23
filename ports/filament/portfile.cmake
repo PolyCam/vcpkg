@@ -17,22 +17,20 @@ file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/libz")
 file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/sdl2")
 file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/stb")
 
-set(CXX_STANDARD "-std=c++17")
-set(VCPKG_C_FLAGS "${VCPKG_C_FLAGS} -fvisibility=hidden")
-set(VCPKG_CXX_FLAGS "${VCPKG_CXX_FLAGS} ${CXX_STANDARD} -fstrict-aliasing -Wno-unknown-pragmas -Wno-unused-function -Wno-deprecated-declarations -fvisibility=hidden")
-
-set(PLATFORM_OPTIONS "")
+set(PLATFORM_OPTION "")
 set(METAL_OPTION "-DFILAMENT_SUPPORTS_METAL=OFF")
 set(OPENGL_OPTION "-DFILAMENT_SUPPORTS_OPENGL=OFF")
+set(EGL_OPTION "")
 
 if (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "Android")
-    set(PLATFORM_OPTIONS "-DANDROID=1 -DEGL=TRUE")
+    set(PLATFORM_OPTION "-DANDROID=1")
     set(OPENGL_OPTION "-DFILAMENT_SUPPORTS_OPENGL=ON")
+    set(EGL_OPTION "-DEGL=TRUE")
 elseif (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "iOS")
-    set(PLATFORM_OPTIONS "-DIOS=1")
+    set(PLATFORM_OPTION "-DIOS=1")
     set(METAL_OPTION "-DFILAMENT_SUPPORTS_METAL=ON")
 elseif (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-    set(PLATFORM_OPTIONS "-DWEBGL=1")
+    set(PLATFORM_OPTION "-DWEBGL=1")
     set(OPENGL_OPTION "-DFILAMENT_SUPPORTS_OPENGL=ON")
 else ()
     set(METAL_OPTION "-DFILAMENT_SUPPORTS_METAL=ON")
@@ -50,9 +48,10 @@ vcpkg_cmake_configure(
         -DFILAMENT_SKIP_SDL2=ON
         -DFILAMENT_SKIP_SAMPLES=ON
         -DFILAMENT_ENABLE_MATDBG=OFF
-        ${PLATFORM_OPTIONS}
+        ${PLATFORM_OPTION}
         ${METAL_OPTION}
         ${OPENGL_OPTION}
+        ${EGL_OPTION}
 )
 
 vcpkg_cmake_install()
