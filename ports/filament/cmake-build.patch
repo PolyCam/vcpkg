@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a979145c0..7173049c0 100644
+index a979145c0..d3b6a33f3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -311,10 +311,6 @@ if (ANDROID)
@@ -95,10 +95,10 @@ index a979145c0..7173049c0 100644
 -if (NOT CMAKE_CROSSCOMPILING)
 -    export(TARGETS matc cmgen filamesh mipgen resgen uberz glslminifier FILE ${IMPORT_EXECUTABLES})
 -endif()
-+install(EXPORT filamentConfig DESTINATION share/filament)
++install(EXPORT filamentTargets DESTINATION share/filament)
 \ No newline at end of file
 diff --git a/filament/CMakeLists.txt b/filament/CMakeLists.txt
-index 31147660f..d35582646 100644
+index 31147660f..8686ab50f 100644
 --- a/filament/CMakeLists.txt
 +++ b/filament/CMakeLists.txt
 @@ -524,7 +524,11 @@ include_directories(src)
@@ -119,12 +119,12 @@ index 31147660f..d35582646 100644
  # ==================================================================================================
  set(INSTALL_TYPE ARCHIVE)
 -install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ${INSTALL_TYPE} DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ${INSTALL_TYPE} DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/filament DESTINATION include)
  install(FILES "README.md" DESTINATION .)
  install(FILES "../LICENSE" DESTINATION .)
 diff --git a/filament/backend/CMakeLists.txt b/filament/backend/CMakeLists.txt
-index 624e41ba7..ff3302f3f 100644
+index 624e41ba7..d1cd46384 100644
 --- a/filament/backend/CMakeLists.txt
 +++ b/filament/backend/CMakeLists.txt
 @@ -220,7 +220,10 @@ include_directories(${GENERATION_ROOT})
@@ -157,7 +157,7 @@ index 624e41ba7..ff3302f3f 100644
  set(INSTALL_TYPE ARCHIVE)
 -install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
 -install(TARGETS vkshaders ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} ${TARGET}_headers EXPORT filamentConfig ${INSTALL_TYPE} DESTINATION lib)
++install(TARGETS ${TARGET} ${TARGET}_headers EXPORT filamentTargets ${INSTALL_TYPE} DESTINATION lib)
 +install(TARGETS vkshaders ${INSTALL_TYPE} DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/backend DESTINATION include)
  
@@ -172,7 +172,7 @@ index 624e41ba7..ff3302f3f 100644
      endif()
  
 diff --git a/libs/filabridge/CMakeLists.txt b/libs/filabridge/CMakeLists.txt
-index ffcd1ce23..d4d49cb9c 100644
+index ffcd1ce23..f0e72da06 100644
 --- a/libs/filabridge/CMakeLists.txt
 +++ b/libs/filabridge/CMakeLists.txt
 @@ -18,10 +18,11 @@ set(SRCS
@@ -195,9 +195,9 @@ index ffcd1ce23..d4d49cb9c 100644
  # ==================================================================================================
  install(DIRECTORY ${PUBLIC_HDR_DIR}/filament DESTINATION include)
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/libs/filaflat/CMakeLists.txt b/libs/filaflat/CMakeLists.txt
-index 0ebf53e06..fcaf9503a 100644
+index 0ebf53e06..6f53ea601 100644
 --- a/libs/filaflat/CMakeLists.txt
 +++ b/libs/filaflat/CMakeLists.txt
 @@ -18,10 +18,11 @@ set(SRCS
@@ -220,9 +220,9 @@ index 0ebf53e06..fcaf9503a 100644
  # We do not need filaflat headers in the install directory
  # install(DIRECTORY ${PUBLIC_HDR_DIR}/filaflat DESTINATION include)
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/libs/filagui/CMakeLists.txt b/libs/filagui/CMakeLists.txt
-index 8e63b0ee5..62a1fa8d9 100644
+index 8e63b0ee5..cfed9a224 100644
 --- a/libs/filagui/CMakeLists.txt
 +++ b/libs/filagui/CMakeLists.txt
 @@ -82,7 +82,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS} ${RESGEN_SOURCE})
@@ -245,10 +245,10 @@ index 8e63b0ee5..62a1fa8d9 100644
 +# ==================================================================================================
 +# Installation
 +# ==================================================================================================
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 +install(DIRECTORY ${PUBLIC_HDR_DIR}/filagui DESTINATION include)
 diff --git a/libs/filamat/CMakeLists.txt b/libs/filamat/CMakeLists.txt
-index d4be03fa7..4542aaf77 100644
+index d4be03fa7..0d78957fa 100644
 --- a/libs/filamat/CMakeLists.txt
 +++ b/libs/filamat/CMakeLists.txt
 @@ -98,7 +98,10 @@ target_link_libraries(${TARGET} shaders filabridge utils smol-v)
@@ -272,7 +272,7 @@ index d4be03fa7..4542aaf77 100644
  install(DIRECTORY ${PUBLIC_HDR_DIR}/filamat DESTINATION include)
  
 -install(TARGETS filamat_lite ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS filamat_lite EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS filamat_lite EXPORT filamentTargets ARCHIVE DESTINATION lib)
  
  # ==================================================================================================
  # Tests
@@ -290,7 +290,7 @@ index eab319211..4cb31bc0f 100644
  
  # ==================================================================================================
 diff --git a/libs/geometry/CMakeLists.txt b/libs/geometry/CMakeLists.txt
-index 5c46eb606..943324c3c 100644
+index 5c46eb606..dddc012d0 100644
 --- a/libs/geometry/CMakeLists.txt
 +++ b/libs/geometry/CMakeLists.txt
 @@ -26,7 +26,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
@@ -310,12 +310,12 @@ index 5c46eb606..943324c3c 100644
  # Installation
  # ==================================================================================================
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/geometry DESTINATION include)
  
  # ==================================================================================================
 diff --git a/libs/gltfio/CMakeLists.txt b/libs/gltfio/CMakeLists.txt
-index 70a790e46..1e1cfce93 100644
+index 70a790e46..8d823fe26 100644
 --- a/libs/gltfio/CMakeLists.txt
 +++ b/libs/gltfio/CMakeLists.txt
 @@ -145,23 +145,32 @@ set(DUMMY_SRC "${RESOURCE_DIR}/dummy.c")
@@ -381,11 +381,11 @@ index 70a790e46..1e1cfce93 100644
  # ==================================================================================================
  
 -install(TARGETS gltfio_core uberarchive ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS gltfio_core uberarchive EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS gltfio_core uberarchive EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/gltfio DESTINATION include)
  install(FILES ${RESOURCE_DIR}/materials/uberarchive.h DESTINATION include/gltfio/materials)
 diff --git a/libs/ibl/CMakeLists.txt b/libs/ibl/CMakeLists.txt
-index 23b1937cc..ed21304a8 100644
+index 23b1937cc..234a6ccf8 100644
 --- a/libs/ibl/CMakeLists.txt
 +++ b/libs/ibl/CMakeLists.txt
 @@ -34,13 +34,19 @@ set(SRCS
@@ -416,8 +416,8 @@ index 23b1937cc..ed21304a8 100644
  # ==================================================================================================
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
 -install(TARGETS ${TARGET}-lite ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
-+install(TARGETS ${TARGET}-lite EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET}-lite EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/ibl DESTINATION include)
 diff --git a/libs/iblprefilter/CMakeLists.txt b/libs/iblprefilter/CMakeLists.txt
 index e39212e43..40e38b53f 100644
@@ -431,7 +431,7 @@ index e39212e43..40e38b53f 100644
 +install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/filament-iblprefilter DESTINATION include)
 diff --git a/libs/image/CMakeLists.txt b/libs/image/CMakeLists.txt
-index 2d76ca148..b4f0c95b4 100644
+index 2d76ca148..95215d56d 100644
 --- a/libs/image/CMakeLists.txt
 +++ b/libs/image/CMakeLists.txt
 @@ -31,7 +31,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
@@ -451,7 +451,7 @@ index 2d76ca148..b4f0c95b4 100644
  # Installation
  # ==================================================================================================
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/image DESTINATION include)
  
  # ==================================================================================================
@@ -472,7 +472,7 @@ index 1971e7ffb..ac0395aa5 100644
      target_link_libraries(${TARGET} PRIVATE wsock32)
  endif()
 diff --git a/libs/ktxreader/CMakeLists.txt b/libs/ktxreader/CMakeLists.txt
-index d5da5332a..a1dd99b23 100644
+index d5da5332a..a642f768b 100644
 --- a/libs/ktxreader/CMakeLists.txt
 +++ b/libs/ktxreader/CMakeLists.txt
 @@ -26,7 +26,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
@@ -492,7 +492,7 @@ index d5da5332a..a1dd99b23 100644
  # Installation
  # ==================================================================================================
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/${TARGET} DESTINATION include)
  
  # ==================================================================================================
@@ -509,7 +509,7 @@ index 071c5e9da..b8e2a84fd 100644
  # We do not need matdbg headers in the install directory
  # install(DIRECTORY ${PUBLIC_HDR_DIR}/matdbg DESTINATION include)
 diff --git a/libs/math/CMakeLists.txt b/libs/math/CMakeLists.txt
-index d7dab9108..d6116a6da 100644
+index d7dab9108..29fc29f7a 100644
 --- a/libs/math/CMakeLists.txt
 +++ b/libs/math/CMakeLists.txt
 @@ -41,12 +41,22 @@ include_directories(${PUBLIC_HDR_DIR})
@@ -527,7 +527,7 @@ index d7dab9108..d6116a6da 100644
  # Installation
  # ==================================================================================================
 +install(TARGETS ${TARGET}
-+    EXPORT filamentConfig
++    EXPORT filamentTargets
 +    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 +    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 +    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -537,7 +537,7 @@ index d7dab9108..d6116a6da 100644
  
  # ==================================================================================================
 diff --git a/libs/uberz/CMakeLists.txt b/libs/uberz/CMakeLists.txt
-index 47744e225..55bdd0207 100644
+index 47744e225..2caf95d2c 100644
 --- a/libs/uberz/CMakeLists.txt
 +++ b/libs/uberz/CMakeLists.txt
 @@ -27,7 +27,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
@@ -557,10 +557,10 @@ index 47744e225..55bdd0207 100644
  # Installation
  # ==================================================================================================
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/uberz DESTINATION include)
 diff --git a/libs/utils/CMakeLists.txt b/libs/utils/CMakeLists.txt
-index 906f7441d..3b6645895 100644
+index 906f7441d..821fcbf1e 100644
 --- a/libs/utils/CMakeLists.txt
 +++ b/libs/utils/CMakeLists.txt
 @@ -96,7 +96,10 @@ endif()
@@ -580,12 +580,12 @@ index 906f7441d..3b6645895 100644
  # ==================================================================================================
  set(INSTALL_TYPE ARCHIVE)
 -install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ${INSTALL_TYPE} DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ${INSTALL_TYPE} DESTINATION lib)
  install(FILES ${DIST_HDRS} DESTINATION include/${TARGET})
  if (ANDROID)
      install(FILES ${DIST_ANDROID_HDRS} DESTINATION include/${TARGET_LINUX})
 diff --git a/shaders/CMakeLists.txt b/shaders/CMakeLists.txt
-index 64e39e33c..9ec3a3b03 100644
+index 64e39e33c..9b328b828 100644
 --- a/shaders/CMakeLists.txt
 +++ b/shaders/CMakeLists.txt
 @@ -110,11 +110,14 @@ endif()
@@ -604,9 +604,9 @@ index 64e39e33c..9ec3a3b03 100644
  # ==================================================================================================
  
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/third_party/basisu/tnt/CMakeLists.txt b/third_party/basisu/tnt/CMakeLists.txt
-index 59daa5407..e0b86eeb2 100644
+index 59daa5407..21d78ac4f 100644
 --- a/third_party/basisu/tnt/CMakeLists.txt
 +++ b/third_party/basisu/tnt/CMakeLists.txt
 @@ -57,9 +57,18 @@ add_library(basis_transcoder ${TRANSCODER_SRC})
@@ -637,10 +637,10 @@ index 59daa5407..e0b86eeb2 100644
  
 -install(TARGETS basis_transcoder ARCHIVE DESTINATION lib/${DIST_DIR})
 -install(TARGETS zstd ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS basis_transcoder EXPORT filamentConfig ARCHIVE DESTINATION lib)
-+install(TARGETS zstd EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS basis_transcoder EXPORT filamentTargets ARCHIVE DESTINATION lib)
++install(TARGETS zstd EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/third_party/cgltf/tnt/CMakeLists.txt b/third_party/cgltf/tnt/CMakeLists.txt
-index db9e2338d..0da23c891 100644
+index db9e2338d..e996a7a79 100644
 --- a/third_party/cgltf/tnt/CMakeLists.txt
 +++ b/third_party/cgltf/tnt/CMakeLists.txt
 @@ -9,11 +9,12 @@ set(PUBLIC_HDRS
@@ -661,10 +661,10 @@ index db9e2338d..0da23c891 100644
 +    $<INSTALL_INTERFACE:include>
 +)
 +set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 \ No newline at end of file
 diff --git a/third_party/civetweb/tnt/CMakeLists.txt b/third_party/civetweb/tnt/CMakeLists.txt
-index 074c8c1fe..8b5ac5f58 100644
+index 074c8c1fe..7eb3009db 100644
 --- a/third_party/civetweb/tnt/CMakeLists.txt
 +++ b/third_party/civetweb/tnt/CMakeLists.txt
 @@ -27,11 +27,14 @@ add_definitions(-DUSE_WEBSOCKET)
@@ -683,9 +683,9 @@ index 074c8c1fe..8b5ac5f58 100644
  target_compile_options(${TARGET} PRIVATE $<$<PLATFORM_ID:Linux>:-fPIC>)
  
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/third_party/hat-trie/tnt/CMakeLists.txt b/third_party/hat-trie/tnt/CMakeLists.txt
-index 9c812cc24..f00ea0d16 100644
+index 9c812cc24..0cb89c319 100644
 --- a/third_party/hat-trie/tnt/CMakeLists.txt
 +++ b/third_party/hat-trie/tnt/CMakeLists.txt
 @@ -18,6 +18,10 @@ set(PUBLIC_HDRS
@@ -701,9 +701,9 @@ index 9c812cc24..f00ea0d16 100644
 +    $<INSTALL_INTERFACE:include>
 +)
 +
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/third_party/imgui/tnt/CMakeLists.txt b/third_party/imgui/tnt/CMakeLists.txt
-index 814ce0e1a..26e3a5705 100644
+index 814ce0e1a..a0dd578cd 100644
 --- a/third_party/imgui/tnt/CMakeLists.txt
 +++ b/third_party/imgui/tnt/CMakeLists.txt
 @@ -8,6 +8,7 @@ set(TARGET              imgui)
@@ -738,12 +738,12 @@ index 814ce0e1a..26e3a5705 100644
 +# ==================================================================================================
 +# Installation
 +# ==================================================================================================
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 +install(FILES ${PUBLIC_HDRS} DESTINATION include)
 +install(FILES ${BACKENDS} DESTINATION include/imgui/backends)
 \ No newline at end of file
 diff --git a/third_party/meshoptimizer/tnt/CMakeLists.txt b/third_party/meshoptimizer/tnt/CMakeLists.txt
-index ae530b24e..d84ad0680 100644
+index ae530b24e..d95717316 100644
 --- a/third_party/meshoptimizer/tnt/CMakeLists.txt
 +++ b/third_party/meshoptimizer/tnt/CMakeLists.txt
 @@ -128,4 +128,4 @@ endif()
@@ -751,9 +751,9 @@ index ae530b24e..d84ad0680 100644
  
  set(INSTALL_TYPE ARCHIVE)
 -install(TARGETS meshoptimizer ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
-+install(TARGETS meshoptimizer EXPORT filamentConfig ${INSTALL_TYPE} DESTINATION lib)
++install(TARGETS meshoptimizer EXPORT filamentTargets ${INSTALL_TYPE} DESTINATION lib)
 diff --git a/third_party/robin-map/tnt/CMakeLists.txt b/third_party/robin-map/tnt/CMakeLists.txt
-index 300da5248..9a5bc7fdb 100644
+index 300da5248..b4c35d008 100644
 --- a/third_party/robin-map/tnt/CMakeLists.txt
 +++ b/third_party/robin-map/tnt/CMakeLists.txt
 @@ -17,14 +17,16 @@ set(PUBLIC_HDRS
@@ -776,9 +776,9 @@ index 300da5248..9a5bc7fdb 100644
  # Installation
  # ==================================================================================================
  install(FILES ${PUBLIC_HDRS} DESTINATION include/${TARGET})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/third_party/smol-v/tnt/CMakeLists.txt b/third_party/smol-v/tnt/CMakeLists.txt
-index 4b245d450..166615eec 100644
+index 4b245d450..fc4db9450 100644
 --- a/third_party/smol-v/tnt/CMakeLists.txt
 +++ b/third_party/smol-v/tnt/CMakeLists.txt
 @@ -20,7 +20,10 @@ if (NOT MSVC)
@@ -793,7 +793,7 @@ index 4b245d450..166615eec 100644
  set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
  
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
-+install(TARGETS ${TARGET} EXPORT filamentConfig ARCHIVE DESTINATION lib)
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/tools/filamesh/CMakeLists.txt b/tools/filamesh/CMakeLists.txt
 index fa97069ae..c3c2733dd 100644
 --- a/tools/filamesh/CMakeLists.txt

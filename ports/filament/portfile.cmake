@@ -21,6 +21,23 @@ set(CXX_STANDARD "-std=c++17")
 set(VCPKG_C_FLAGS "${VCPKG_C_FLAGS} -fvisibility=hidden")
 set(VCPKG_CXX_FLAGS "${VCPKG_CXX_FLAGS} ${CXX_STANDARD} -fstrict-aliasing -Wno-unknown-pragmas -Wno-unused-function -Wno-deprecated-declarations -fvisibility=hidden")
 
+set(TARGET_OPTION "")
+set(METAL_OPTION "-DFILAMENT_SUPPORTS_METAL=OFF")
+set(OPENGL_OPTION "-DFILAMENT_SUPPORTS_OPENGL=OFF")
+
+if (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "Android")
+    set(TARGET_OPTION "-DANDROID=1")
+    set(OPENGL_OPTION "-DFILAMENT_SUPPORTS_OPENGL=ON")
+elseif (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "iOS")
+    set(TARGET_OPTION "-DIOS=1")
+    set(METAL_OPTION "-DFILAMENT_SUPPORTS_METAL=ON")
+elseif (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(TARGET_OPTION "-DWEBGL=1")
+    set(OPENGL_OPTION "-DFILAMENT_SUPPORTS_OPENGL=ON")
+else ()
+    set(METAL_OPTION "-DFILAMENT_SUPPORTS_METAL=ON")
+endif()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
@@ -29,7 +46,9 @@ vcpkg_cmake_configure(
         -DFILAMENT_SKIP_SDL2=ON
         -DFILAMENT_SKIP_SAMPLES=ON
         -DFILAMENT_ENABLE_MATDBG=OFF
-        -DFILAMENT_SUPPORTS_OPENGL=OFF
+        ${TARGET_OPTION}
+        ${METAL_OPTION}
+        ${OPENGL_OPTION}
 )
 
 vcpkg_cmake_install()
@@ -38,10 +57,11 @@ vcpkg_copy_pdbs()
 
 file(REMOVE "${CURRENT_PACKAGES_DIR}/LICENSE")
 file(REMOVE "${CURRENT_PACKAGES_DIR}/README.md")
-file(REMOVE "${CURRENT_PACKAGES_DIR}//debug/LICENSE")
-file(REMOVE "${CURRENT_PACKAGES_DIR}//debug/README.md")
+file(REMOVE "${CURRENT_PACKAGES_DIR}/debug/LICENSE")
+file(REMOVE "${CURRENT_PACKAGES_DIR}/debug/README.md")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/bin")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
 
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/filamentConfig.cmake" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
 file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
