@@ -16,7 +16,6 @@ file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/libpng")
 file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/libz")
 file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/sdl2")
 file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/stb")
-file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/imgui")
 
 set(CXX_STANDARD "-std=c++17")
 set(VCPKG_C_FLAGS "${VCPKG_C_FLAGS} -fvisibility=hidden")
@@ -34,6 +33,7 @@ vcpkg_cmake_configure(
 )
 
 vcpkg_cmake_install()
+vcpkg_cmake_config_fixup()
 vcpkg_copy_pdbs()
 
 file(REMOVE "${CURRENT_PACKAGES_DIR}/LICENSE")
@@ -42,5 +42,6 @@ file(REMOVE "${CURRENT_PACKAGES_DIR}//debug/LICENSE")
 file(REMOVE "${CURRENT_PACKAGES_DIR}//debug/README.md")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/bin")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/share")
 
 file(INSTALL "${SOURCE_PATH}/LICENSE" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
