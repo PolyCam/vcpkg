@@ -38,6 +38,10 @@ else ()
     set(METAL_OPTION "-DFILAMENT_SUPPORTS_METAL=ON")
 endif()
 
+if(VCPKG_CROSSCOMPILING)
+    vcpkg_add_to_path(${CURRENT_HOST_INSTALLED_DIR}/bin)
+endif()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
@@ -46,6 +50,7 @@ vcpkg_cmake_configure(
         -DFILAMENT_SKIP_SDL2=ON
         -DFILAMENT_SKIP_SAMPLES=ON
         -DFILAMENT_ENABLE_MATDBG=OFF
+        -DEGL=TRUE
         ${TARGET_OPTION}
         ${METAL_OPTION}
         ${OPENGL_OPTION}

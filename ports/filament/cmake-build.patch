@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a979145c0..508e351bd 100644
+index a979145c0..2156163a8 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -311,10 +311,6 @@ if (ANDROID)
@@ -46,7 +46,27 @@ index a979145c0..508e351bd 100644
  endif()
  
  # Disable optimizations and enable debug info (preserves names in SPIR-V)
-@@ -644,8 +623,6 @@ endfunction()
+@@ -582,10 +561,15 @@ endfunction()
+ # ==================================================================================================
+ # Configuration for CMAKE_CROSSCOMPILING.
+ # ==================================================================================================
+-if (WEBGL)
+-    set(IMPORT_EXECUTABLES ${FILAMENT}/${IMPORT_EXECUTABLES_DIR}/ImportExecutables-Release.cmake)
+-else()
+-    set(IMPORT_EXECUTABLES ${FILAMENT}/${IMPORT_EXECUTABLES_DIR}/ImportExecutables-${CMAKE_BUILD_TYPE}.cmake)
++
++if(CMAKE_CROSSCOMPILING)
++    message("configuring filament tools using host binaries")
++    foreach(NAME IN ITEMS matc resgen cmgen filamesh uberz mipgen glslminifier)
++        find_program(${NAME}_PATH ${NAME})
++        add_executable(${NAME} IMPORTED)
++        set_target_properties(${NAME} PROPERTIES IMPORTED_LOCATION ${${NAME}_PATH})
++        message("configured executable ${NAME} with path ${${NAME}_PATH}")
++    endforeach()
+ endif()
+ 
+ # ==================================================================================================
+@@ -644,8 +628,6 @@ endfunction()
  # ==================================================================================================
  
  # Common to all platforms
@@ -55,7 +75,7 @@ index a979145c0..508e351bd 100644
  add_subdirectory(${LIBRARIES}/filabridge)
  add_subdirectory(${LIBRARIES}/filaflat)
  add_subdirectory(${LIBRARIES}/filagui)
-@@ -672,9 +649,7 @@ add_subdirectory(${EXTERNAL}/smol-v/tnt)
+@@ -672,9 +654,7 @@ add_subdirectory(${EXTERNAL}/smol-v/tnt)
  add_subdirectory(${EXTERNAL}/benchmark/tnt)
  add_subdirectory(${EXTERNAL}/meshoptimizer/tnt)
  add_subdirectory(${EXTERNAL}/cgltf/tnt)
@@ -65,7 +85,7 @@ index a979145c0..508e351bd 100644
  add_subdirectory(${EXTERNAL}/getopt)
  
  if (FILAMENT_BUILD_FILAMAT OR IS_HOST_PLATFORM)
-@@ -698,11 +673,6 @@ endif()
+@@ -698,11 +678,6 @@ endif()
  
  set(FILAMENT_SAMPLES_BINARY_DIR ${PROJECT_BINARY_DIR}/samples)
  
@@ -77,7 +97,7 @@ index a979145c0..508e351bd 100644
  if (IS_HOST_PLATFORM)
      if (FILAMENT_SUPPORTS_OPENGL)
          add_subdirectory(${LIBRARIES}/bluegl)
-@@ -714,10 +684,6 @@ if (IS_HOST_PLATFORM)
+@@ -714,10 +689,6 @@ if (IS_HOST_PLATFORM)
  
      add_subdirectory(${FILAMENT}/samples)
  
@@ -88,7 +108,7 @@ index a979145c0..508e351bd 100644
      add_subdirectory(${EXTERNAL}/tinyexr/tnt)
  
      add_subdirectory(${TOOLS}/cmgen)
-@@ -735,7 +701,4 @@ if (IS_HOST_PLATFORM)
+@@ -735,7 +706,4 @@ if (IS_HOST_PLATFORM)
      add_subdirectory(${TOOLS}/uberz)
  endif()
  
@@ -99,10 +119,21 @@ index a979145c0..508e351bd 100644
 +install(EXPORT filamentTargets DESTINATION share/filament)
 \ No newline at end of file
 diff --git a/filament/CMakeLists.txt b/filament/CMakeLists.txt
-index 31147660f..8686ab50f 100644
+index 31147660f..21410b3e8 100644
 --- a/filament/CMakeLists.txt
 +++ b/filament/CMakeLists.txt
-@@ -524,7 +524,11 @@ include_directories(src)
+@@ -288,10 +288,6 @@ add_definitions(
+ # Generate all .filamat: default material, skyboxes, and post-process
+ # ==================================================================================================
+ 
+-if (CMAKE_CROSSCOMPILING)
+-    include(${IMPORT_EXECUTABLES})
+-endif()
+-
+ set(MATERIAL_BINS)
+ file(MAKE_DIRECTORY ${MATERIAL_DIR})
+ 
+@@ -524,7 +520,11 @@ include_directories(src)
  add_library(${TARGET} STATIC ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS} ${DATA_BINS})
  
  # specify where the public headers of this library are
@@ -115,7 +146,7 @@ index 31147660f..8686ab50f 100644
  
  # add this subproject to the Filament folder
  set_target_properties(${TARGET} PROPERTIES FOLDER Filament)
-@@ -606,7 +610,7 @@ target_link_libraries(${TARGET} PRIVATE
+@@ -606,7 +606,7 @@ target_link_libraries(${TARGET} PRIVATE
  # Installation
  # ==================================================================================================
  set(INSTALL_TYPE ARCHIVE)
@@ -315,10 +346,21 @@ index 0ebf53e06..6f53ea601 100644
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
 +install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/libs/filagui/CMakeLists.txt b/libs/filagui/CMakeLists.txt
-index 8e63b0ee5..cfed9a224 100644
+index 8e63b0ee5..3d8c4e080 100644
 --- a/libs/filagui/CMakeLists.txt
 +++ b/libs/filagui/CMakeLists.txt
-@@ -82,7 +82,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS} ${RESGEN_SOURCE})
+@@ -26,10 +26,6 @@ set(SRCS
+ # Compile material files (mat) into headers (inc)
+ # ==================================================================================================
+ 
+-if (CMAKE_CROSSCOMPILING)
+-    include(${IMPORT_EXECUTABLES})
+-endif()
+-
+ set(MATERIAL_SRCS
+         src/materials/uiBlit.mat)
+ 
+@@ -82,7 +78,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS} ${RESGEN_SOURCE})
  
  target_link_libraries(${TARGET} PUBLIC imgui filament)
  
@@ -330,7 +372,7 @@ index 8e63b0ee5..cfed9a224 100644
  set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
  
  # ==================================================================================================
-@@ -94,3 +97,9 @@ if (NOT MSVC)
+@@ -94,3 +93,9 @@ if (NOT MSVC)
              $<$<CONFIG:Release>:-ffast-math>
      )
  endif()
@@ -392,6 +434,21 @@ index d4be03fa7..6d0fc2b11 100644
 +target_link_libraries(${TARGET} filamat_lite GTest::gtest)
  
  set_target_properties(${TARGET} PROPERTIES FOLDER Tests)
+diff --git a/libs/filamentapp/CMakeLists.txt b/libs/filamentapp/CMakeLists.txt
+index 5d391d884..5aafcfacf 100644
+--- a/libs/filamentapp/CMakeLists.txt
++++ b/libs/filamentapp/CMakeLists.txt
+@@ -80,10 +80,6 @@ endif()
+ # Compile resources
+ # ==================================================================================================
+ 
+-if (CMAKE_CROSSCOMPILING)
+-    include(${IMPORT_EXECUTABLES})
+-endif()
+-
+ file(MAKE_DIRECTORY ${MATERIAL_DIR})
+ file(MAKE_DIRECTORY ${RESOURCE_DIR})
+ 
 diff --git a/libs/filameshio/CMakeLists.txt b/libs/filameshio/CMakeLists.txt
 index eab319211..a3ad91fc6 100644
 --- a/libs/filameshio/CMakeLists.txt
@@ -449,10 +506,21 @@ index 5c46eb606..e6fedafc5 100644
      set_target_properties(test_transcoder PROPERTIES FOLDER Tests)
  endif()
 diff --git a/libs/gltfio/CMakeLists.txt b/libs/gltfio/CMakeLists.txt
-index 70a790e46..8d823fe26 100644
+index 70a790e46..0a25748f3 100644
 --- a/libs/gltfio/CMakeLists.txt
 +++ b/libs/gltfio/CMakeLists.txt
-@@ -145,23 +145,32 @@ set(DUMMY_SRC "${RESOURCE_DIR}/dummy.c")
+@@ -53,10 +53,6 @@ set(SRCS
+ 
+ set(RESOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR})
+ 
+-if (CMAKE_CROSSCOMPILING)
+-    include(${IMPORT_EXECUTABLES})
+-endif()
+-
+ set(DOUBLESIDED false)
+ set(TRANSPARENCY default)
+ 
+@@ -145,23 +141,32 @@ set(DUMMY_SRC "${RESOURCE_DIR}/dummy.c")
  add_custom_command(OUTPUT ${DUMMY_SRC} COMMAND echo "//" > ${DUMMY_SRC})
  
  add_library(uberarchive ${DUMMY_SRC} ${RESGEN_SOURCE})
@@ -489,7 +557,7 @@ index 70a790e46..8d823fe26 100644
  
  if (WEBGL_PTHREADS)
      target_compile_definitions(gltfio_core PUBLIC -DFILAMENT_WASM_THREADS)
-@@ -174,7 +183,10 @@ if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
+@@ -174,7 +179,10 @@ if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
      # ==================================================================================================
      add_library(${TARGET} STATIC ${PUBLIC_HDRS} src/JitShaderProvider.cpp)
      target_link_libraries(${TARGET} PUBLIC filamat gltfio_core)
@@ -501,7 +569,7 @@ index 70a790e46..8d823fe26 100644
      set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
  
      # ==================================================================================================
-@@ -187,7 +199,7 @@ if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
+@@ -187,7 +195,7 @@ if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
          target_compile_options(${TARGET} PRIVATE -Wno-deprecated-register)
      endif()
  
@@ -510,7 +578,7 @@ index 70a790e46..8d823fe26 100644
  
  endif()
  
-@@ -195,6 +207,6 @@ endif()
+@@ -195,6 +203,6 @@ endif()
  # Installation
  # ==================================================================================================
  
@@ -554,10 +622,21 @@ index 23b1937cc..234a6ccf8 100644
 +install(TARGETS ${TARGET}-lite EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/ibl DESTINATION include)
 diff --git a/libs/iblprefilter/CMakeLists.txt b/libs/iblprefilter/CMakeLists.txt
-index e39212e43..40e38b53f 100644
+index e39212e43..3c98e0f12 100644
 --- a/libs/iblprefilter/CMakeLists.txt
 +++ b/libs/iblprefilter/CMakeLists.txt
-@@ -133,5 +133,5 @@ target_link_libraries(${TARGET} PRIVATE
+@@ -42,10 +42,6 @@ add_definitions(-DSYSTRACE_TAG=2 )
+ # Generate all .filamat: default material, skyboxes, and post-process
+ # ==================================================================================================
+ 
+-if (CMAKE_CROSSCOMPILING)
+-    include(${IMPORT_EXECUTABLES})
+-endif()
+-
+ set(MATERIAL_BINS)
+ file(MAKE_DIRECTORY ${MATERIAL_DIR})
+ 
+@@ -133,5 +129,5 @@ target_link_libraries(${TARGET} PRIVATE
  # Installation
  # ==================================================================================================
  set(INSTALL_TYPE ARCHIVE)
@@ -650,10 +729,21 @@ index d5da5332a..9da52345f 100644
      set_target_properties(test_ktxreader PROPERTIES FOLDER Tests)
  endif()
 diff --git a/libs/matdbg/CMakeLists.txt b/libs/matdbg/CMakeLists.txt
-index 071c5e9da..b8e2a84fd 100644
+index 071c5e9da..76b932bdb 100644
 --- a/libs/matdbg/CMakeLists.txt
 +++ b/libs/matdbg/CMakeLists.txt
-@@ -121,6 +121,6 @@ set(MATDBG_COMBINED_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libmatdbg_combined.a")
+@@ -4,10 +4,6 @@ project(matdbg C ASM)
+ set(TARGET matdbg)
+ set(PUBLIC_HDR_DIR include)
+ 
+-if (CMAKE_CROSSCOMPILING)
+-    include(${IMPORT_EXECUTABLES})
+-endif()
+-
+ # ==================================================================================================
+ # Sources and headers
+ # ==================================================================================================
+@@ -121,6 +117,6 @@ set(MATDBG_COMBINED_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libmatdbg_combined.a")
  combine_static_libs(matdbg "${MATDBG_COMBINED_OUTPUT}" "${MATDBG_DEPS}")
  
  set(MATDBG_LIB_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}matdbg${CMAKE_STATIC_LIBRARY_SUFFIX})
@@ -783,11 +873,37 @@ index 621bb2498..0816ba9b4 100644
 +    target_link_libraries(test_settings PRIVATE ${TARGET} GTest::gtest)
      set_target_properties(test_settings PROPERTIES FOLDER Tests)
  endif()
+diff --git a/samples/CMakeLists.txt b/samples/CMakeLists.txt
+index e365ec96c..d6700ae16 100644
+--- a/samples/CMakeLists.txt
++++ b/samples/CMakeLists.txt
+@@ -41,10 +41,6 @@ set(MATERIAL_SRCS
+         materials/texturedLit.mat
+ )
+ 
+-if (CMAKE_CROSSCOMPILING)
+-    include(${IMPORT_EXECUTABLES})
+-endif()
+-
+ file(MAKE_DIRECTORY ${MATERIAL_DIR})
+ 
+ foreach (mat_src ${MATERIAL_SRCS})
 diff --git a/shaders/CMakeLists.txt b/shaders/CMakeLists.txt
-index 64e39e33c..9b328b828 100644
+index 64e39e33c..c07890991 100644
 --- a/shaders/CMakeLists.txt
 +++ b/shaders/CMakeLists.txt
-@@ -110,11 +110,14 @@ endif()
+@@ -3,10 +3,6 @@ project(shaders C ASM)
+ 
+ set(TARGET shaders)
+ 
+-if (CMAKE_CROSSCOMPILING)
+-    include(${IMPORT_EXECUTABLES})
+-endif()
+-
+ # ==================================================================================================
+ # Sources and headers
+ # ==================================================================================================
+@@ -110,11 +106,14 @@ endif()
  # Include and target definitions
  # ==================================================================================================
  add_library(${TARGET} STATIC ${RESGEN_SOURCE})
@@ -1062,3 +1178,18 @@ index 8199edc82..202230567 100644
 +target_link_libraries(${TARGET} matlang GTest::gtest)
  
  set_target_properties(test_matc PROPERTIES FOLDER Tests)
+diff --git a/web/samples/CMakeLists.txt b/web/samples/CMakeLists.txt
+index 3be298aab..b0552381b 100644
+--- a/web/samples/CMakeLists.txt
++++ b/web/samples/CMakeLists.txt
+@@ -8,10 +8,6 @@ endif()
+ set(SERVER_DIR ${PROJECT_BINARY_DIR})
+ set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../..)
+ 
+-if (CMAKE_CROSSCOMPILING)
+-    include(${IMPORT_EXECUTABLES})
+-endif()
+-
+ # ==================================================================================================
+ # Build Materials.
+ # ==================================================================================================
