@@ -10,6 +10,7 @@ vcpkg_from_github(
         cmake-build.patch
         spirv-std-move.patch
         cmgen.patch
+        spirv-tools.patch
 )
 
 file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/draco")
@@ -28,7 +29,7 @@ if (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "Android")
     set(PLATFORM_OPTION "-DANDROID=1")
     set(OPENGL_OPTION "-DFILAMENT_SUPPORTS_OPENGL=ON")
     set(EGL_OPTION "-DEGL=TRUE")
-elseif (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "iOS")
+elseif (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "iOS" OR ${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "visionOS")
     set(PLATFORM_OPTION "-DIOS=1")
     set(METAL_OPTION "-DFILAMENT_SUPPORTS_METAL=ON")
 elseif (${VCPKG_CMAKE_SYSTEM_NAME} MATCHES "Emscripten")

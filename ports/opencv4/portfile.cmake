@@ -359,6 +359,12 @@ if("contrib" IN_LIST FEATURES)
   endif()
 endif()
 
+if(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+  list(APPEND ADDITIONAL_BUILD_FLAGS "-DIOS=1")
+  list(APPEND ADDITIONAL_BUILD_FLAGS "-DWITH_AVFOUNDATION=OFF")
+  list(APPEND ADDITIONAL_BUILD_FLAGS "-DBUILD_opencv_videoio=OFF")
+endif()
+
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS

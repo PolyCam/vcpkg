@@ -2,7 +2,7 @@ diff --git a/CMakeLists.txt b/CMakeLists.txt
 index a979145c0..59a38aa8e 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -3,6 +3,14 @@
+@@ -3,6 +3,18 @@
  # ==================================================================================================
  cmake_minimum_required(VERSION 3.19)
  
@@ -10,8 +10,12 @@ index a979145c0..59a38aa8e 100644
 +set(CMAKE_CXX_STANDARD 17)
 +set(CMAKE_CXX_STANDARD_REQUIRED yes)
 +
-+if (IOS)
++if (IOS AND NOT CMAKE_SYSTEM_NAME STREQUAL "visionOS")
 +    include(third_party/clang/iOS.cmake)
++endif()
++
++if (CMAKE_SYSTEM_NAME STREQUAL "visionOS")
++    add_definitions(-DIOS)
 +endif()
 +
  # ==================================================================================================
