@@ -8,4 +8,3 @@ execute_process(COMMAND xcodebuild -version -sdk iphonesimulator Path
   OUTPUT_VARIABLE VCPKG_OSX_SYSROOT
   ERROR_QUIET
   OUTPUT_STRIP_TRAILING_WHITESPACE)
-# set(VCPKG_OSX_SYSROOT iphonesimulator)
