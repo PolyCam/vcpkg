@@ -1,40 +1,27 @@
 # Don't file if the bin folder exists. We need exe and custom files.
 set(VCPKG_POLICY_EMPTY_PACKAGE enabled)
 
-message(STATUS [=[
-The usd port does not work with the version of Threading Building Blocks (tbb) currently chosen by vcpkg's baselines,
-and does not expect to be updated to work with current versions soon. See
-https://github.com/PixarAnimationStudios/USD/issues/1600
-
-If you must use this port in your project, pin a version of tbb of 2020_U3 or older via a manifest file.
-See https://vcpkg.io/en/docs/examples/versioning.getting-started.html for instructions. 
-]=])
-
-string(REGEX REPLACE "^([0-9]+)[.]([0-9])\$" "\\1.0\\2" USD_VERSION "${VERSION}")
-
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO PixarAnimationStudios/OpenUSD
-    REF b53573ea2a6b29bc4a6b129f604bbb342c35df5c # v23.05
+    REF b53573ea2a6b29bc4a6b129f604bbb342c35df5c #v23.05
     SHA512 9e6ed135fc7a7f27e52d83696bc425937ae88c2a0da2a4902ae32e304348f7735905945eef30c508b1c80238aa039c3d36a591441e13eee8be21e35ebb509398
-
     HEAD_REF master
-    #PATCHES
-        #fix_build-location.patch
+    PATCHES
+        fix_build-location.patch
+        find-tbb.patch
 )
 
 if(NOT VCPKG_TARGET_IS_WINDOWS)
 file(REMOVE ${SOURCE_PATH}/cmake/modules/FindTBB.cmake)
 endif()
 
-vcpkg_configure_cmake(
+vcpkg_cmake_configure(
     SOURCE_PATH ${SOURCE_PATH}
-    PREFER_NINJA
     OPTIONS
         -DPXR_BUILD_ALEMBIC_PLUGIN:BOOL=OFF
         -DPXR_BUILD_EMBREE_PLUGIN:BOOL=OFF
         -DPXR_BUILD_IMAGING:BOOL=OFF
-        -DPXR_BUILD_USD_IMAGING:BOOL=OFF
         -DPXR_BUILD_MONOLITHIC:BOOL=ON
         -DPXR_BUILD_TESTS:BOOL=OFF
         -DPXR_BUILD_USD_IMAGING:BOOL=OFF
@@ -46,7 +33,11 @@ vcpkg_configure_cmake(
         -DPXR_BUILD_PYTHON_DOCUMENTATION=OFF
 )
 
-vcpkg_install_cmake()
+vcpkg_cmake_install()
+
+# The CMake files installation is not standard in USD and will install pxrConfig.cmake in the prefix root and
+# pxrTargets.cmake in "cmake" so we are moving pxrConfig.cmake in the same folder and patch the path to pxrTargets.cmake
+vcpkg_replace_string(${CURRENT_PACKAGES_DIR}/pxrConfig.cmake "/cmake/pxrTargets.cmake" "/pxrTargets.cmake")
 
 # The CMake files installation is not standard in USD and will install pxrConfig.cmake in the prefix root and
 # pxrTargets.cmake in "cmake" so we are moving pxrConfig.cmake in the same folder and patch the path to pxrTargets.cmake
@@ -57,9 +48,8 @@ file(
         "${CURRENT_PACKAGES_DIR}/pxrConfig.cmake"
         "${CURRENT_PACKAGES_DIR}/cmake/pxrConfig.cmake")
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH cmake TARGET_PATH share/pxr)
+vcpkg_cmake_config_fixup(CONFIG_PATH cmake PACKAGE_NAME pxr)
 
-vcpkg_copy_pdbs()
 # Remove duplicates in debug folder
 file(REMOVE ${CURRENT_PACKAGES_DIR}/debug/pxrConfig.cmake)
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
