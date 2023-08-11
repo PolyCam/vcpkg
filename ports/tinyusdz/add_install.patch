@@ -1,0 +1,27 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cb11cef..18a9d42 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -775,6 +775,22 @@ if(TINYUSDZ_BUILD_SHARED_LIBS)
+ else()
+   # static only
+   set(TINYUSDZ_LIBS ${TINYUSDZ_TARGET_STATIC})
++  install(TARGETS ${TINYUSDZ_TARGET_STATIC}
++          EXPORT tinyusdzConfig
++          RUNTIME DESTINATION bin
++          LIBRARY DESTINATION lib
++          ARCHIVE DESTINATION lib
++          PUBLIC_HEADER DESTINATION include
++          )
++  install(EXPORT tinyusdzConfig
++          DESTINATION share/tinyusdz)
++  file(GLOB TINYUSDZ_HEADERS  "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hh")
++  file(GLOB TINYUSDZ_HEADERS_NONSTD "${CMAKE_CURRENT_SOURCE_DIR}/src/nonstd/*.hpp")
++  file(GLOB TINYUSDZ_HEADERS_INC "${CMAKE_CURRENT_SOURCE_DIR}/src/*.inc")
++  message("${TINYUSDZ_HEADERS}")
++  install(FILES ${TINYUSDZ_HEADERS} DESTINATION "${CMAKE_INSTALL_PREFIX}/include")
++  install(FILES ${TINYUSDZ_HEADERS_NONSTD} DESTINATION "${CMAKE_INSTALL_PREFIX}/include/nonstd")
++  install(FILES ${TINYUSDZ_HEADERS_INC} DESTINATION "${CMAKE_INSTALL_PREFIX}")
+ endif()
+ 
+ if(WIN32 AND TINYUSDZ_WITH_PXR_COMPAT_API)

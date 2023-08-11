@@ -1,0 +1,12 @@
+{
+  "name": "tinyusdz",
+  "version": "0.8.0-rc4",
+  "homepage": "",
+  "description": "",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    }
+  ]
+}

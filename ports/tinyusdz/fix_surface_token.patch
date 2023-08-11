@@ -1,0 +1,13 @@
+diff --git a/src/pprinter.cc b/src/pprinter.cc
+index 2cd8178..ee6e7ef 100644
+--- a/src/pprinter.cc
++++ b/src/pprinter.cc
+@@ -2618,7 +2618,7 @@ std::string to_string(const Material &material, const uint32_t indent, bool clos
+   if (material.surface.authored()) {
+ 
+     // TODO: list edit?.
+-    ss << pprint::Indent(indent+1) << "token outputs:surface ";
++    ss << pprint::Indent(indent+1) << "token outputs:surface.connect ";
+ 
+     const auto &conns = material.surface.get_connections();
+     if (conns.size() == 1) {
