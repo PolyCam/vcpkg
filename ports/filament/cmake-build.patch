@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a979145c0..59a38aa8e 100644
+index 24adbb826..439c96082 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -3,6 +3,14 @@
@@ -15,9 +15,9 @@ index a979145c0..59a38aa8e 100644
 +endif()
 +
  # ==================================================================================================
- # Project declaration
+ # Toolchain configuration
  # ==================================================================================================
-@@ -62,33 +70,6 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
+@@ -72,38 +80,6 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
      cmake_policy(SET CMP0074 NEW)
  endif()
  
@@ -26,32 +26,37 @@ index a979145c0..59a38aa8e 100644
 -# ==================================================================================================
 -find_program(CCACHE_PROGRAM ccache)
 -if (CCACHE_PROGRAM)
--    set(C_LAUNCHER   "${CCACHE_PROGRAM}")
--    set(CXX_LAUNCHER "${CCACHE_PROGRAM}")
--
--    configure_file(build/launch-c.in   launch-c)
--    configure_file(build/launch-cxx.in launch-cxx)
--
--    execute_process(COMMAND chmod a+rx
--        "${CMAKE_BINARY_DIR}/launch-c"
--        "${CMAKE_BINARY_DIR}/launch-cxx"
--    )
--
--    if (CMAKE_GENERATOR STREQUAL "Xcode")
--        set(CMAKE_XCODE_ATTRIBUTE_CC         "${CMAKE_BINARY_DIR}/launch-c")
--        set(CMAKE_XCODE_ATTRIBUTE_CXX        "${CMAKE_BINARY_DIR}/launch-cxx")
--        set(CMAKE_XCODE_ATTRIBUTE_LD         "${CMAKE_BINARY_DIR}/launch-c")
--        set(CMAKE_XCODE_ATTRIBUTE_LDPLUSPLUS "${CMAKE_BINARY_DIR}/launch-cxx")
+-    if (WIN32)
+-        set(CMAKE_C_COMPILER_LAUNCHER   "${CCACHE_PROGRAM}")
+-        set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
 -    else()
--        set(CMAKE_C_COMPILER_LAUNCHER        "${CMAKE_BINARY_DIR}/launch-c")
--        set(CMAKE_CXX_COMPILER_LAUNCHER      "${CMAKE_BINARY_DIR}/launch-cxx")
+-        set(C_LAUNCHER   "${CCACHE_PROGRAM}")
+-        set(CXX_LAUNCHER "${CCACHE_PROGRAM}")
+-
+-        configure_file(build/launch-c.in   launch-c)
+-        configure_file(build/launch-cxx.in launch-cxx)
+-
+-        execute_process(COMMAND chmod a+rx
+-            "${CMAKE_CURRENT_BINARY_DIR}/launch-c"
+-            "${CMAKE_CURRENT_BINARY_DIR}/launch-cxx"
+-        )
+-
+-        if (CMAKE_GENERATOR STREQUAL "Xcode")
+-            set(CMAKE_XCODE_ATTRIBUTE_CC         "${CMAKE_CURRENT_BINARY_DIR}/launch-c")
+-            set(CMAKE_XCODE_ATTRIBUTE_CXX        "${CMAKE_CURRENT_BINARY_DIR}/launch-cxx")
+-            set(CMAKE_XCODE_ATTRIBUTE_LD         "${CMAKE_CURRENT_BINARY_DIR}/launch-c")
+-            set(CMAKE_XCODE_ATTRIBUTE_LDPLUSPLUS "${CMAKE_CURRENT_BINARY_DIR}/launch-cxx")
+-        else()
+-            set(CMAKE_C_COMPILER_LAUNCHER        "${CMAKE_CURRENT_BINARY_DIR}/launch-c")
+-            set(CMAKE_CXX_COMPILER_LAUNCHER      "${CMAKE_CURRENT_BINARY_DIR}/launch-cxx")
+-        endif()
 -    endif()
 -endif()
 -
  # ==================================================================================================
  # Support Vim and Visual Studio Code by generating compile_commands.json
  # ==================================================================================================
-@@ -311,10 +292,6 @@ if (ANDROID)
+@@ -335,10 +311,6 @@ if (ANDROID)
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Werror=unguarded-availability")
  endif()
  
@@ -62,7 +67,7 @@ index a979145c0..59a38aa8e 100644
  if (MSVC)
      # Since the "secure" replacements that MSVC suggests are not portable, disable
      # the deprecation warnings. Also disable warnings about use of POSIX functions (i.e. "unlink").
-@@ -345,24 +322,6 @@ if (NOT MSVC AND NOT IOS)
+@@ -369,16 +341,6 @@ if (NOT MSVC AND NOT IOS)
      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffunction-sections -fdata-sections")
  endif()
  
@@ -76,7 +81,13 @@ index a979145c0..59a38aa8e 100644
 -        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fno-unwind-tables -fno-asynchronous-unwind-tables")
 -    endif()
 -endif()
--
+ 
+ # Turn off exceptions on iOS debug as well. This fixes an availability error we see when using
+ # std::visit, which is not supported on iOS 11.0 when exceptions are enabled.
+@@ -386,13 +348,6 @@ if (IOS)
+     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-exceptions")
+ endif()
+ 
 -# With WebGL, we disable RTTI even for debug builds because we pass emscripten::val back and forth
 -# between C++ and JavaScript in order to efficiently access typed arrays, which are unbound.
 -# NOTE: This is not documented in emscripten so we should consider a different approach.
@@ -87,15 +98,7 @@ index a979145c0..59a38aa8e 100644
  if (WEBGL_PTHREADS)
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
  endif()
-@@ -491,6 +450,7 @@ if (FILAMENT_SUPPORTS_VULKAN)
- endif()
- if (FILAMENT_SUPPORTS_METAL)
-     set(MATC_API_FLAGS ${MATC_API_FLAGS} -a metal)
-+    set(MATC_OPT_FLAGS -g) # material optimizations causes rendering artifacts on METAL
- endif()
- 
- # Disable optimizations and enable debug info (preserves names in SPIR-V)
-@@ -582,10 +542,15 @@ endfunction()
+@@ -617,10 +572,15 @@ endfunction()
  # ==================================================================================================
  # Configuration for CMAKE_CROSSCOMPILING.
  # ==================================================================================================
@@ -115,7 +118,7 @@ index a979145c0..59a38aa8e 100644
  endif()
  
  # ==================================================================================================
-@@ -644,8 +609,6 @@ endfunction()
+@@ -679,8 +639,6 @@ endfunction()
  # ==================================================================================================
  
  # Common to all platforms
@@ -124,9 +127,9 @@ index a979145c0..59a38aa8e 100644
  add_subdirectory(${LIBRARIES}/filabridge)
  add_subdirectory(${LIBRARIES}/filaflat)
  add_subdirectory(${LIBRARIES}/filagui)
-@@ -672,9 +635,7 @@ add_subdirectory(${EXTERNAL}/smol-v/tnt)
- add_subdirectory(${EXTERNAL}/benchmark/tnt)
+@@ -708,9 +666,7 @@ add_subdirectory(${EXTERNAL}/benchmark/tnt)
  add_subdirectory(${EXTERNAL}/meshoptimizer/tnt)
+ add_subdirectory(${EXTERNAL}/mikktspace)
  add_subdirectory(${EXTERNAL}/cgltf/tnt)
 -add_subdirectory(${EXTERNAL}/draco/tnt)
  add_subdirectory(${EXTERNAL}/jsmn/tnt)
@@ -134,7 +137,7 @@ index a979145c0..59a38aa8e 100644
  add_subdirectory(${EXTERNAL}/getopt)
  
  if (FILAMENT_BUILD_FILAMAT OR IS_HOST_PLATFORM)
-@@ -698,11 +659,6 @@ endif()
+@@ -734,11 +690,6 @@ endif()
  
  set(FILAMENT_SAMPLES_BINARY_DIR ${PROJECT_BINARY_DIR}/samples)
  
@@ -146,7 +149,7 @@ index a979145c0..59a38aa8e 100644
  if (IS_HOST_PLATFORM)
      if (FILAMENT_SUPPORTS_OPENGL)
          add_subdirectory(${LIBRARIES}/bluegl)
-@@ -714,10 +670,6 @@ if (IS_HOST_PLATFORM)
+@@ -750,10 +701,6 @@ if (IS_HOST_PLATFORM)
  
      add_subdirectory(${FILAMENT}/samples)
  
@@ -157,7 +160,7 @@ index a979145c0..59a38aa8e 100644
      add_subdirectory(${EXTERNAL}/tinyexr/tnt)
  
      add_subdirectory(${TOOLS}/cmgen)
-@@ -735,7 +687,4 @@ if (IS_HOST_PLATFORM)
+@@ -771,7 +718,4 @@ if (IS_HOST_PLATFORM)
      add_subdirectory(${TOOLS}/uberz)
  endif()
  
@@ -168,10 +171,10 @@ index a979145c0..59a38aa8e 100644
 +install(EXPORT filamentTargets DESTINATION share/filament)
 \ No newline at end of file
 diff --git a/filament/CMakeLists.txt b/filament/CMakeLists.txt
-index 31147660f..635b7f905 100644
+index e417eb06d..4b20db8fe 100644
 --- a/filament/CMakeLists.txt
 +++ b/filament/CMakeLists.txt
-@@ -288,10 +288,6 @@ add_definitions(
+@@ -293,10 +293,6 @@ add_definitions(
  # Generate all .filamat: default material, skyboxes, and post-process
  # ==================================================================================================
  
@@ -182,7 +185,7 @@ index 31147660f..635b7f905 100644
  set(MATERIAL_BINS)
  file(MAKE_DIRECTORY ${MATERIAL_DIR})
  
-@@ -524,7 +520,11 @@ include_directories(src)
+@@ -497,7 +493,11 @@ include_directories(src)
  add_library(${TARGET} STATIC ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS} ${DATA_BINS})
  
  # specify where the public headers of this library are
@@ -195,7 +198,7 @@ index 31147660f..635b7f905 100644
  
  # add this subproject to the Filament folder
  set_target_properties(${TARGET} PROPERTIES FOLDER Filament)
-@@ -606,7 +606,7 @@ target_link_libraries(${TARGET} PRIVATE
+@@ -581,7 +581,7 @@ target_link_libraries(${TARGET} PRIVATE
  # Installation
  # ==================================================================================================
  set(INSTALL_TYPE ARCHIVE)
@@ -204,17 +207,17 @@ index 31147660f..635b7f905 100644
  install(DIRECTORY ${PUBLIC_HDR_DIR}/filament DESTINATION include)
  install(FILES "README.md" DESTINATION .)
  install(FILES "../LICENSE" DESTINATION .)
-@@ -615,5 +615,4 @@ install(FILES "../LICENSE" DESTINATION .)
+@@ -590,5 +590,4 @@ install(FILES "../LICENSE" DESTINATION .)
  # Sub-projects
  # ==================================================================================================
  add_subdirectory(backend)
 -add_subdirectory(test)
  add_subdirectory(benchmark)
 diff --git a/filament/backend/CMakeLists.txt b/filament/backend/CMakeLists.txt
-index 624e41ba7..d9ce4d047 100644
+index 3d35d38d2..fc9ffd127 100644
 --- a/filament/backend/CMakeLists.txt
 +++ b/filament/backend/CMakeLists.txt
-@@ -220,7 +220,10 @@ include_directories(${GENERATION_ROOT})
+@@ -231,7 +231,10 @@ include_directories(${GENERATION_ROOT})
  add_library(${TARGET} STATIC ${PRIVATE_HDRS} ${PUBLIC_HDRS} ${SRCS})
  
  # specify where the public headers of this library are
@@ -226,7 +229,7 @@ index 624e41ba7..d9ce4d047 100644
  
  # add this subproject to the Filament folder
  set_target_properties(${TARGET} PROPERTIES FOLDER Filament)
-@@ -230,7 +233,10 @@ set_target_properties(${TARGET} PROPERTIES FOLDER Filament)
+@@ -241,7 +244,10 @@ set_target_properties(${TARGET} PROPERTIES FOLDER Filament)
  # ==================================================================================================
  
  add_library(${TARGET}_headers INTERFACE)
@@ -238,7 +241,7 @@ index 624e41ba7..d9ce4d047 100644
  
  # ==================================================================================================
  # Build SPIRV snippets used by the Vulkan backend.
-@@ -374,100 +380,6 @@ target_link_libraries(${TARGET} PRIVATE
+@@ -387,101 +393,7 @@ target_link_libraries(${TARGET} PRIVATE
  # Installation
  # ==================================================================================================
  set(INSTALL_TYPE ARCHIVE)
@@ -247,7 +250,7 @@ index 624e41ba7..d9ce4d047 100644
 +install(TARGETS ${TARGET} ${TARGET}_headers EXPORT filamentTargets ${INSTALL_TYPE} DESTINATION lib)
 +install(TARGETS vkshaders ${INSTALL_TYPE} DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/backend DESTINATION include)
--
+ 
 -# ==================================================================================================
 -# Test
 -# ==================================================================================================
@@ -269,6 +272,7 @@ index 624e41ba7..d9ce4d047 100644
 -        test/test_RenderExternalImage.cpp
 -        test/test_StencilBuffer.cpp
 -        test/test_Scissor.cpp
+-        test/test_MipLevels.cpp
 -        )
 -
 -    target_link_libraries(backend_test PRIVATE
@@ -342,10 +346,10 @@ index 624e41ba7..d9ce4d047 100644
 -
 -endif()
 diff --git a/libs/bluegl/CMakeLists.txt b/libs/bluegl/CMakeLists.txt
-index 3d8b6b63f..7681c4346 100644
+index 9ce75c177..60377de18 100644
 --- a/libs/bluegl/CMakeLists.txt
 +++ b/libs/bluegl/CMakeLists.txt
-@@ -49,18 +49,3 @@ if (WIN32)
+@@ -59,18 +59,3 @@ if (WIN32)
  endif()
  
  install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
@@ -415,7 +419,7 @@ index 0ebf53e06..6f53ea601 100644
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
 +install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/libs/filagui/CMakeLists.txt b/libs/filagui/CMakeLists.txt
-index 8e63b0ee5..3d8c4e080 100644
+index e68a511ec..0e3d39a25 100644
 --- a/libs/filagui/CMakeLists.txt
 +++ b/libs/filagui/CMakeLists.txt
 @@ -26,10 +26,6 @@ set(SRCS
@@ -441,8 +445,8 @@ index 8e63b0ee5..3d8c4e080 100644
  set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
  
  # ==================================================================================================
-@@ -94,3 +93,9 @@ if (NOT MSVC)
-             $<$<CONFIG:Release>:-ffast-math>
+@@ -93,3 +92,9 @@ if (NOT MSVC)
+             -Wno-deprecated-register
      )
  endif()
 +
@@ -451,11 +455,12 @@ index 8e63b0ee5..3d8c4e080 100644
 +# ==================================================================================================
 +install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 +install(DIRECTORY ${PUBLIC_HDR_DIR}/filagui DESTINATION include)
+\ No newline at end of file
 diff --git a/libs/filamat/CMakeLists.txt b/libs/filamat/CMakeLists.txt
-index d4be03fa7..c55fb3142 100644
+index 3d1cb0ad5..8a7a7935a 100644
 --- a/libs/filamat/CMakeLists.txt
 +++ b/libs/filamat/CMakeLists.txt
-@@ -98,7 +98,10 @@ target_link_libraries(${TARGET} shaders filabridge utils smol-v)
+@@ -100,7 +100,10 @@ target_link_libraries(${TARGET} shaders filabridge utils smol-v)
  
  # Filamat Lite
  add_library(filamat_lite STATIC ${HDRS} ${LITE_PRIVATE_HDRS} ${LITE_SRCS})
@@ -467,7 +472,7 @@ index d4be03fa7..c55fb3142 100644
  set_target_properties(filamat_lite PROPERTIES FOLDER Libs)
  target_link_libraries(filamat_lite shaders filabridge utils)
  
-@@ -153,37 +156,7 @@ set(FILAMAT_COMBINED_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libfilamat_combined.a")
+@@ -159,38 +162,7 @@ set(FILAMAT_COMBINED_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libfilamat_combined.a")
  combine_static_libs(filamat "${FILAMAT_COMBINED_OUTPUT}" "${FILAMAT_DEPS}")
  
  set(FILAMAT_LIB_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}filamat${CMAKE_STATIC_LIBRARY_SUFFIX})
@@ -485,6 +490,7 @@ index d4be03fa7..c55fb3142 100644
 -set(SRCS
 -        tests/test_filamat.cpp
 -        tests/test_argBufferFixup.cpp
+-        tests/test_clipDistanceFixup.cpp
 -        tests/test_includes.cpp)
 -
 -add_executable(${TARGET} ${SRCS})
@@ -508,7 +514,7 @@ index d4be03fa7..c55fb3142 100644
 -set_target_properties(${TARGET} PROPERTIES FOLDER Tests)
 +install(TARGETS filamat_lite EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/libs/filamentapp/CMakeLists.txt b/libs/filamentapp/CMakeLists.txt
-index 5d391d884..5aafcfacf 100644
+index a2c1d0ded..cd2598f61 100644
 --- a/libs/filamentapp/CMakeLists.txt
 +++ b/libs/filamentapp/CMakeLists.txt
 @@ -80,10 +80,6 @@ endif()
@@ -543,12 +549,12 @@ index eab319211..aefb3d826 100644
 -    set_target_properties(test_${TARGET} PROPERTIES FOLDER Tests)
 -endif()
 diff --git a/libs/geometry/CMakeLists.txt b/libs/geometry/CMakeLists.txt
-index 5c46eb606..cc30fe97f 100644
+index d09e1c5f5..be8921f5b 100644
 --- a/libs/geometry/CMakeLists.txt
 +++ b/libs/geometry/CMakeLists.txt
-@@ -26,7 +26,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
- 
+@@ -35,7 +35,10 @@ set(GEOMETRY_DEPS
  target_link_libraries(${TARGET} PUBLIC math utils)
+ target_link_libraries(${TARGET} PRIVATE ${GEOMETRY_DEPS})
  
 -target_include_directories(${TARGET} PUBLIC ${PUBLIC_HDR_DIR})
 +target_include_directories(${TARGET} PUBLIC
@@ -558,27 +564,41 @@ index 5c46eb606..cc30fe97f 100644
  set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
  
  # ==================================================================================================
-@@ -42,14 +45,5 @@ endif()
+@@ -51,7 +54,7 @@ endif()
  # ==================================================================================================
  # Installation
  # ==================================================================================================
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
 +install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/geometry DESTINATION include)
+ 
+ set(COMBINED_DEPS
+@@ -65,19 +68,4 @@ set(GEOMETRY_COMBINED_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libgeometry_combined.a
+ combine_static_libs(${TARGET} "${GEOMETRY_COMBINED_OUTPUT}" "${COMBINED_DEPS}")
+ 
+ set(GEOMETRY_LIB_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}geometry${CMAKE_STATIC_LIBRARY_SUFFIX})
+-install(FILES "${GEOMETRY_COMBINED_OUTPUT}" DESTINATION lib/${DIST_DIR} RENAME ${GEOMETRY_LIB_NAME})
 -
 -# ==================================================================================================
 -# Tests
 -# ==================================================================================================
 -if (NOT ANDROID AND NOT WEBGL AND NOT IOS)
--    add_executable(test_transcoder tests/test_transcoder.cpp)
--    target_link_libraries(test_transcoder PRIVATE ${TARGET} gtest)
--    set_target_properties(test_transcoder PROPERTIES FOLDER Tests)
+-    set(TARGET test_transcoder)
+-    add_executable(${TARGET} tests/test_transcoder.cpp)
+-    target_link_libraries(${TARGET} PRIVATE geometry gtest)
+-    set_target_properties(${TARGET} PROPERTIES FOLDER Tests)
+-
+-    set(TARGET test_tangent_space_mesh)
+-    add_executable(${TARGET} tests/test_tangent_space_mesh.cpp)
+-    target_link_libraries(${TARGET} PRIVATE geometry gtest)
+-    set_target_properties(${TARGET} PROPERTIES FOLDER Tests)
 -endif()
++install(FILES "${GEOMETRY_COMBINED_OUTPUT}" DESTINATION lib RENAME ${GEOMETRY_LIB_NAME})
 diff --git a/libs/gltfio/CMakeLists.txt b/libs/gltfio/CMakeLists.txt
-index 70a790e46..0a25748f3 100644
+index fbc4397ab..92ef9927b 100644
 --- a/libs/gltfio/CMakeLists.txt
 +++ b/libs/gltfio/CMakeLists.txt
-@@ -53,10 +53,6 @@ set(SRCS
+@@ -58,10 +58,6 @@ set(SRCS
  
  set(RESOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR})
  
@@ -589,7 +609,7 @@ index 70a790e46..0a25748f3 100644
  set(DOUBLESIDED false)
  set(TRANSPARENCY default)
  
-@@ -145,23 +141,32 @@ set(DUMMY_SRC "${RESOURCE_DIR}/dummy.c")
+@@ -154,23 +150,32 @@ set(DUMMY_SRC "${RESOURCE_DIR}/dummy.c")
  add_custom_command(OUTPUT ${DUMMY_SRC} COMMAND echo "//" > ${DUMMY_SRC})
  
  add_library(uberarchive ${DUMMY_SRC} ${RESGEN_SOURCE})
@@ -626,7 +646,7 @@ index 70a790e46..0a25748f3 100644
  
  if (WEBGL_PTHREADS)
      target_compile_definitions(gltfio_core PUBLIC -DFILAMENT_WASM_THREADS)
-@@ -174,7 +179,10 @@ if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
+@@ -183,7 +188,10 @@ if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
      # ==================================================================================================
      add_library(${TARGET} STATIC ${PUBLIC_HDRS} src/JitShaderProvider.cpp)
      target_link_libraries(${TARGET} PUBLIC filamat gltfio_core)
@@ -638,16 +658,52 @@ index 70a790e46..0a25748f3 100644
      set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
  
      # ==================================================================================================
-@@ -187,7 +195,7 @@ if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
+@@ -193,50 +201,14 @@ if (NOT WEBGL AND NOT ANDROID AND NOT IOS)
          target_compile_options(${TARGET} PRIVATE -Wno-deprecated-register)
      endif()
  
 -    install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-
+-endif()
+-
+-# ==================================================================================================
+-# Tests
+-# ==================================================================================================
 +    install(TARGETS ${TARGET} ARCHIVE DESTINATION lib)
  
+-set(GLTF_TEST_FILES)
+-function(add_test_gltf SOURCE TARGET)
+-    set(source_path "${ROOT_DIR}/${SOURCE}")
+-    set(target_path "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}")
+-    add_custom_command(
+-        OUTPUT ${target_path}
+-        DEPENDS ${source_path}
+-        COMMAND ${CMAKE_COMMAND} -E copy ${source_path} ${target_path}
+-    )
+-    list(APPEND GLTF_TEST_FILES "${target_path}")
+-    set(GLTF_TEST_FILES ${GLTF_TEST_FILES} PARENT_SCOPE)
+-endfunction()
+-
+-add_test_gltf("third_party/models/AnimatedMorphCube/AnimatedMorphCube.glb" "AnimatedMorphCube.glb")
+-
+-add_custom_target(test_gltfio_files DEPENDS ${GLTF_TEST_FILES})
+-
+-# The following tests rely on private APIs that are stripped
+-# away in Release builds
+-if (TNT_DEV AND NOT WEBGL AND NOT ANDROID AND NOT IOS)
+-    set(TEST_TARGET test_gltfio)
+-
+-    add_executable(${TEST_TARGET} test/gltfio_test.cpp)
+-    add_dependencies(${TEST_TARGET} test_gltfio_files)
+-
+-    target_link_libraries(${TEST_TARGET} PRIVATE ${TARGET} filament filabridge gtest uberarchive)
+-    if (NOT MSVC)
+-        target_compile_options(${TEST_TARGET} PRIVATE -Wno-deprecated-register)
+-    endif()
+-    set_target_properties(${TEST_TARGET} PROPERTIES FOLDER Tests)
  endif()
  
-@@ -195,6 +203,6 @@ endif()
+ # ==================================================================================================
  # Installation
  # ==================================================================================================
  
@@ -656,7 +712,7 @@ index 70a790e46..0a25748f3 100644
  install(DIRECTORY ${PUBLIC_HDR_DIR}/gltfio DESTINATION include)
  install(FILES ${RESOURCE_DIR}/materials/uberarchive.h DESTINATION include/gltfio/materials)
 diff --git a/libs/ibl/CMakeLists.txt b/libs/ibl/CMakeLists.txt
-index 23b1937cc..234a6ccf8 100644
+index aae32fbaa..c77bf1447 100644
 --- a/libs/ibl/CMakeLists.txt
 +++ b/libs/ibl/CMakeLists.txt
 @@ -34,13 +34,19 @@ set(SRCS
@@ -691,7 +747,7 @@ index 23b1937cc..234a6ccf8 100644
 +install(TARGETS ${TARGET}-lite EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/ibl DESTINATION include)
 diff --git a/libs/iblprefilter/CMakeLists.txt b/libs/iblprefilter/CMakeLists.txt
-index e39212e43..994471b98 100644
+index c001de6bf..cdddfb577 100644
 --- a/libs/iblprefilter/CMakeLists.txt
 +++ b/libs/iblprefilter/CMakeLists.txt
 @@ -42,10 +42,6 @@ add_definitions(-DSYSTRACE_TAG=2 )
@@ -717,7 +773,7 @@ index e39212e43..994471b98 100644
  set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
  
  # ==================================================================================================
-@@ -133,5 +132,5 @@ target_link_libraries(${TARGET} PRIVATE
+@@ -134,5 +133,5 @@ target_link_libraries(${TARGET} PRIVATE
  # Installation
  # ==================================================================================================
  set(INSTALL_TYPE ARCHIVE)
@@ -725,7 +781,7 @@ index e39212e43..994471b98 100644
 +install(TARGETS ${TARGET} EXPORT filamentTargets ${INSTALL_TYPE} DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/filament-iblprefilter DESTINATION include)
 diff --git a/libs/image/CMakeLists.txt b/libs/image/CMakeLists.txt
-index 2d76ca148..655b46647 100644
+index 8816a8d69..cb142a1ff 100644
 --- a/libs/image/CMakeLists.txt
 +++ b/libs/image/CMakeLists.txt
 @@ -31,7 +31,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
@@ -757,7 +813,7 @@ index 2d76ca148..655b46647 100644
 -    set_target_properties(test_${TARGET} PROPERTIES FOLDER Tests)
 -endif()
 diff --git a/libs/imageio/CMakeLists.txt b/libs/imageio/CMakeLists.txt
-index 1971e7ffb..ac0395aa5 100644
+index 47544655b..d3dcce94a 100644
 --- a/libs/imageio/CMakeLists.txt
 +++ b/libs/imageio/CMakeLists.txt
 @@ -33,7 +33,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
@@ -773,7 +829,7 @@ index 1971e7ffb..ac0395aa5 100644
      target_link_libraries(${TARGET} PRIVATE wsock32)
  endif()
 diff --git a/libs/ktxreader/CMakeLists.txt b/libs/ktxreader/CMakeLists.txt
-index d5da5332a..8a5a6a033 100644
+index a9d5714e0..53f9b190e 100644
 --- a/libs/ktxreader/CMakeLists.txt
 +++ b/libs/ktxreader/CMakeLists.txt
 @@ -26,7 +26,10 @@ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
@@ -788,7 +844,7 @@ index d5da5332a..8a5a6a033 100644
  set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
  
  # ==================================================================================================
-@@ -42,28 +45,5 @@ endif()
+@@ -40,28 +43,5 @@ endif()
  # ==================================================================================================
  # Installation
  # ==================================================================================================
@@ -819,7 +875,7 @@ index d5da5332a..8a5a6a033 100644
 -    set_target_properties(test_ktxreader PROPERTIES FOLDER Tests)
 -endif()
 diff --git a/libs/matdbg/CMakeLists.txt b/libs/matdbg/CMakeLists.txt
-index 071c5e9da..76b932bdb 100644
+index f53413be0..ce0056df1 100644
 --- a/libs/matdbg/CMakeLists.txt
 +++ b/libs/matdbg/CMakeLists.txt
 @@ -4,10 +4,6 @@ project(matdbg C ASM)
@@ -833,7 +889,7 @@ index 071c5e9da..76b932bdb 100644
  # ==================================================================================================
  # Sources and headers
  # ==================================================================================================
-@@ -121,6 +117,6 @@ set(MATDBG_COMBINED_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libmatdbg_combined.a")
+@@ -119,6 +115,6 @@ set(MATDBG_COMBINED_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libmatdbg_combined.a")
  combine_static_libs(matdbg "${MATDBG_COMBINED_OUTPUT}" "${MATDBG_DEPS}")
  
  set(MATDBG_LIB_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}matdbg${CMAKE_STATIC_LIBRARY_SUFFIX})
@@ -842,7 +898,7 @@ index 071c5e9da..76b932bdb 100644
  # We do not need matdbg headers in the install directory
  # install(DIRECTORY ${PUBLIC_HDR_DIR}/matdbg DESTINATION include)
 diff --git a/libs/math/CMakeLists.txt b/libs/math/CMakeLists.txt
-index d7dab9108..f6656255c 100644
+index 838aa2d53..fb22de4cb 100644
 --- a/libs/math/CMakeLists.txt
 +++ b/libs/math/CMakeLists.txt
 @@ -41,38 +41,20 @@ include_directories(${PUBLIC_HDR_DIR})
@@ -919,10 +975,10 @@ index 47744e225..2caf95d2c 100644
 +install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
  install(DIRECTORY ${PUBLIC_HDR_DIR}/uberz DESTINATION include)
 diff --git a/libs/utils/CMakeLists.txt b/libs/utils/CMakeLists.txt
-index 906f7441d..a10ed754d 100644
+index 0e26b014e..e9b8f1b6c 100644
 --- a/libs/utils/CMakeLists.txt
 +++ b/libs/utils/CMakeLists.txt
-@@ -96,7 +96,10 @@ endif()
+@@ -101,7 +101,10 @@ endif()
  include_directories(${PUBLIC_HDR_DIR})
  
  add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
@@ -934,7 +990,7 @@ index 906f7441d..a10ed754d 100644
  set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
  target_link_libraries(${TARGET} PUBLIC tsl)
  
-@@ -122,79 +125,10 @@ endif()
+@@ -127,79 +130,10 @@ endif()
  # Installation
  # ==================================================================================================
  set(INSTALL_TYPE ARCHIVE)
@@ -1016,10 +1072,10 @@ index 906f7441d..a10ed754d 100644
 -
 -endif()
 diff --git a/libs/viewer/CMakeLists.txt b/libs/viewer/CMakeLists.txt
-index 621bb2498..7ee870af1 100644
+index 5d2a13ecb..c2fd08280 100644
 --- a/libs/viewer/CMakeLists.txt
 +++ b/libs/viewer/CMakeLists.txt
-@@ -47,14 +47,5 @@ endif()
+@@ -45,14 +45,5 @@ endif()
  # ==================================================================================================
  # Installation
  # ==================================================================================================
@@ -1036,7 +1092,7 @@ index 621bb2498..7ee870af1 100644
 -    set_target_properties(test_settings PROPERTIES FOLDER Tests)
 -endif()
 diff --git a/shaders/CMakeLists.txt b/shaders/CMakeLists.txt
-index 64e39e33c..c07890991 100644
+index dbabd77ab..98a102001 100644
 --- a/shaders/CMakeLists.txt
 +++ b/shaders/CMakeLists.txt
 @@ -3,10 +3,6 @@ project(shaders C ASM)
@@ -1275,7 +1331,7 @@ index 814ce0e1a..a0dd578cd 100644
 +install(FILES ${BACKENDS} DESTINATION include/imgui/backends)
 \ No newline at end of file
 diff --git a/third_party/meshoptimizer/tnt/CMakeLists.txt b/third_party/meshoptimizer/tnt/CMakeLists.txt
-index ae530b24e..d95717316 100644
+index 696761990..e5a791c50 100644
 --- a/third_party/meshoptimizer/tnt/CMakeLists.txt
 +++ b/third_party/meshoptimizer/tnt/CMakeLists.txt
 @@ -128,4 +128,4 @@ endif()
@@ -1284,6 +1340,29 @@ index ae530b24e..d95717316 100644
  set(INSTALL_TYPE ARCHIVE)
 -install(TARGETS meshoptimizer ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
 +install(TARGETS meshoptimizer EXPORT filamentTargets ${INSTALL_TYPE} DESTINATION lib)
+diff --git a/third_party/mikktspace/CMakeLists.txt b/third_party/mikktspace/CMakeLists.txt
+index 120013568..a79dc465e 100644
+--- a/third_party/mikktspace/CMakeLists.txt
++++ b/third_party/mikktspace/CMakeLists.txt
+@@ -21,7 +21,10 @@ set(SRCS
+ include_directories(${PUBLIC_HDR_DIR})
+ 
+ add_library(${TARGET} ${PUBLIC_HDRS} ${PRIVATE_HDRS} ${SRCS})
+-target_include_directories(${TARGET} PUBLIC ${PUBLIC_HDR_DIR})
++target_include_directories(${TARGET} PUBLIC
++    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${PUBLIC_HDR_DIR}>
++    $<INSTALL_INTERFACE:include>
++)
+ set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
+ 
+ # ==================================================================================================
+@@ -36,5 +39,5 @@ endif()
+ # ==================================================================================================
+ # Installation
+ # ==================================================================================================
+-install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
++install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
+ install(DIRECTORY ${PUBLIC_HDR_DIR}/mikktspace DESTINATION include)
 diff --git a/third_party/robin-map/tnt/CMakeLists.txt b/third_party/robin-map/tnt/CMakeLists.txt
 index 300da5248..b4c35d008 100644
 --- a/third_party/robin-map/tnt/CMakeLists.txt
@@ -1327,10 +1406,10 @@ index 4b245d450..fc4db9450 100644
 -install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
 +install(TARGETS ${TARGET} EXPORT filamentTargets ARCHIVE DESTINATION lib)
 diff --git a/tools/cmgen/CMakeLists.txt b/tools/cmgen/CMakeLists.txt
-index f3d0eac56..59138b511 100644
+index 874cb9003..46d6fff33 100644
 --- a/tools/cmgen/CMakeLists.txt
 +++ b/tools/cmgen/CMakeLists.txt
-@@ -50,12 +50,3 @@ target_include_directories(${TARGET} PRIVATE ${GENERATION_ROOT})
+@@ -48,12 +48,3 @@ target_include_directories(${TARGET} PRIVATE ${GENERATION_ROOT})
  # Installation
  # ==================================================================================================
  install(TARGETS ${TARGET} RUNTIME DESTINATION bin)

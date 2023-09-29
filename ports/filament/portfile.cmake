@@ -1,15 +1,15 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO google/filament
-    REF a4797a631eb51fc51ec38e503c0a10965624a2ae
-    SHA512 ef99b652775d122665834e6d526496793fb61621bea724ec2b3d6558526864fed22eb9ec385ec8a75ae4377a902314751dceb11de5ad7044666e60fcfbf53380
+    REF v1.43.1
+    SHA512 a2f73fae003f7d595c2c7dadaaae305063fab896905e728408d8d52672121233ee474c72344a76573009d14619ffb2e37fd96b6cc16a1a8ba85d9efe550907c2
     HEAD_REF release
     PATCHES
         image-sampler.patch
         gltfio.patch
         cmake-build.patch
-        spirv-std-move.patch
         cmgen.patch
+        deprecation.patch
 )
 
 file(REMOVE_RECURSE "${SOURCE_PATH}/third-party/draco")

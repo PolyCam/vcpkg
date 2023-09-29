@@ -1,0 +1,42 @@
+diff --git a/filament/backend/src/metal/MetalContext.mm b/filament/backend/src/metal/MetalContext.mm
+index fce98eb52..4fd5ad215 100644
+--- a/filament/backend/src/metal/MetalContext.mm
++++ b/filament/backend/src/metal/MetalContext.mm
+@@ -26,6 +26,8 @@
+ namespace filament {
+ namespace backend {
+ 
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+ void initializeSupportedGpuFamilies(MetalContext* context) {
+     auto& highestSupportedFamily = context->highestSupportedGpuFamily;
+ 
+@@ -93,6 +95,7 @@ void initializeSupportedGpuFamilies(MetalContext* context) {
+ #endif
+     }
+ }
++#pragma clang diagnostic pop
+ 
+ id<MTLCommandBuffer> getPendingCommandBuffer(MetalContext* context) {
+     if (context->pendingCommandBuffer) {
+diff --git a/filament/backend/src/metal/MetalHandles.mm b/filament/backend/src/metal/MetalHandles.mm
+index ed8a894ff..7dda9af02 100644
+--- a/filament/backend/src/metal/MetalHandles.mm
++++ b/filament/backend/src/metal/MetalHandles.mm
+@@ -865,6 +865,8 @@ void presentDrawable(bool presentFrame, void* user) {
+     finalized = false;
+ }
+ 
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+ void MetalSamplerGroup::useResources(id<MTLRenderCommandEncoder> renderPassEncoder) {
+     assert_invariant(finalized);
+     if (@available(iOS 13, *)) {
+@@ -879,6 +881,7 @@ void presentDrawable(bool presentFrame, void* user) {
+                                   usage:MTLResourceUsageRead | MTLResourceUsageSample];
+     }
+ }
++#pragma clang diagnostic pop
+ 
+ MetalRenderTarget::MetalRenderTarget(MetalContext* context, uint32_t width, uint32_t height,
+         uint8_t samples, Attachment colorAttachments[MRT::MAX_SUPPORTED_RENDER_TARGET_COUNT],

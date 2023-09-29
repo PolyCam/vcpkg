@@ -41,10 +41,10 @@ index ff497af2d..dd2304776 100644
  /**
   * Creates a decoder that can handle certain types of "image/ktx2" content as specified in
 diff --git a/libs/gltfio/src/AssetLoader.cpp b/libs/gltfio/src/AssetLoader.cpp
-index 2f93172b1..27e48a679 100644
+index 3fd23a40a..1771905ea 100644
 --- a/libs/gltfio/src/AssetLoader.cpp
 +++ b/libs/gltfio/src/AssetLoader.cpp
-@@ -222,7 +222,10 @@ struct FAssetLoader : public AssetLoader {
+@@ -223,7 +223,10 @@ struct FAssetLoader : public AssetLoader {
              mTransformManager(config.engine->getTransformManager()),
              mMaterials(*config.materials),
              mEngine(*config.engine),
@@ -56,9 +56,9 @@ index 2f93172b1..27e48a679 100644
  
      FFilamentAsset* createAsset(const uint8_t* bytes, uint32_t nbytes);
      FFilamentAsset* createInstancedAsset(const uint8_t* bytes, uint32_t numBytes,
-@@ -296,6 +299,11 @@ public:
-     Engine& mEngine;
+@@ -298,6 +301,11 @@ public:
      FNodeManager mNodeManager;
+     FTrsTransformManager mTrsTransformManager;
  
 +    // options applied to assets created by this loader
 +    bool mSkipAmbientOcclusionMaps;
@@ -68,7 +68,7 @@ index 2f93172b1..27e48a679 100644
      // Transient state used only for the asset currently being loaded:
      FFilamentAsset* mAsset;
      tsl::robin_map<cgltf_node*, SceneMask> mRootNodes;
-@@ -1217,8 +1225,8 @@ MaterialKey FAssetLoader::getMaterialKey(const cgltf_data* srcAsset,
+@@ -1222,8 +1230,8 @@ MaterialKey FAssetLoader::getMaterialKey(const cgltf_data* srcAsset,
          .unlit = !!inputMat->unlit,
          .hasVertexColors = vertexColor,
          .hasBaseColorTexture = baseColorTexture->texture != nullptr,
@@ -79,7 +79,7 @@ index 2f93172b1..27e48a679 100644
          .hasEmissiveTexture = inputMat->emissive_texture.texture != nullptr,
          .enableDiagnostics = mDiagnosticsEnabled,
          .baseColorUV = (uint8_t) baseColorTexture->texcoord,
-@@ -1260,7 +1268,7 @@ MaterialKey FAssetLoader::getMaterialKey(const cgltf_data* srcAsset,
+@@ -1265,7 +1273,7 @@ MaterialKey FAssetLoader::getMaterialKey(const cgltf_data* srcAsset,
              matkey.specularGlossinessUV = (uint8_t) metallicRoughnessTexture->texcoord;
          }
      } else {
@@ -89,10 +89,10 @@ index 2f93172b1..27e48a679 100644
      }
  
 diff --git a/libs/gltfio/src/FilamentAsset.cpp b/libs/gltfio/src/FilamentAsset.cpp
-index acec38ccd..2e55c262f 100644
+index 558640179..26f2a8216 100644
 --- a/libs/gltfio/src/FilamentAsset.cpp
 +++ b/libs/gltfio/src/FilamentAsset.cpp
-@@ -79,7 +79,7 @@ FFilamentAsset::~FFilamentAsset() {
+@@ -86,7 +86,7 @@ FFilamentAsset::~FFilamentAsset() {
          mEngine->destroy(ib);
      }
      for (auto tx : mTextures) {
@@ -102,10 +102,10 @@ index acec38ccd..2e55c262f 100644
          }
      }
 diff --git a/libs/gltfio/src/ResourceLoader.cpp b/libs/gltfio/src/ResourceLoader.cpp
-index 8b83c4f30..dca8586e2 100644
+index 0d54c780b..290ed64d8 100644
 --- a/libs/gltfio/src/ResourceLoader.cpp
 +++ b/libs/gltfio/src/ResourceLoader.cpp
-@@ -760,6 +760,9 @@ void ResourceLoader::Impl::createTextures(FFilamentAsset* asset, bool async) {
+@@ -767,6 +767,9 @@ void ResourceLoader::Impl::createTextures(FFilamentAsset* asset, bool async) {
      // Create new texture objects if they are not cached and kick off decoding jobs.
      for (size_t textureIndex = 0, n = asset->mTextures.size(); textureIndex < n; ++textureIndex) {
          FFilamentAsset::TextureInfo& info = asset->mTextures[textureIndex];
@@ -116,7 +116,7 @@ index 8b83c4f30..dca8586e2 100644
          if (texture == nullptr) {
              if (cacheResult == CacheResult::NOT_READY) {
 diff --git a/libs/gltfio/src/StbProvider.cpp b/libs/gltfio/src/StbProvider.cpp
-index 4c5f811b3..db9fe5d6e 100644
+index 17f84b76e..0f12d88eb 100644
 --- a/libs/gltfio/src/StbProvider.cpp
 +++ b/libs/gltfio/src/StbProvider.cpp
 @@ -25,6 +25,10 @@
@@ -225,7 +225,7 @@ index 4c5f811b3..db9fe5d6e 100644
              texture->setImage(*mEngine, 0, std::move(pbd));
  
              // Call generateMipmaps unconditionally to fulfill the promise of the TextureProvider
-@@ -229,23 +245,47 @@ const char* StbProvider::getPopMessage() const {
+@@ -245,23 +261,47 @@ const char* StbProvider::getPopMessage() const {
      return mRecentPopMessage.empty() ? nullptr : mRecentPopMessage.c_str();
  }
  
@@ -281,7 +281,7 @@ index 4c5f811b3..db9fe5d6e 100644
      mDecoderRootJob = mEngine->getJobSystem().createJob();
  #ifndef NDEBUG
      slog.i << "Texture Decoder has "
-@@ -259,8 +299,8 @@ StbProvider::~StbProvider() {
+@@ -275,8 +315,8 @@ StbProvider::~StbProvider() {
      mEngine->getJobSystem().release(mDecoderRootJob);
  }
  
