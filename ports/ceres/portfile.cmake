@@ -55,6 +55,7 @@ vcpkg_cmake_configure(
         -DPROVIDE_UNINSTALL_TARGET=OFF
         -DMSVC_USE_STATIC_CRT=${MSVC_USE_STATIC_CRT_VALUE}
         -DLIB_SUFFIX=${LIB_SUFFIX}
+        -DIOS_DEPLOYMENT_TARGET=15
 )
 
 vcpkg_cmake_install()
