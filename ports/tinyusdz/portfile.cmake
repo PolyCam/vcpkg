@@ -43,11 +43,10 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO syoyo/tinyusdz
-    REF d59411b2475a95b78f122affc102c493b2d5ea6d
-    SHA512 72febc4966c44fb1eedc38378b968e06c2135d1943a8ca1c34876d002739306f797850fe41e293ebc882d4cd3ee16b27ebaac3cd0e422022439cc1563f6cc81b
+    REF 550f22db47f1f1a47eae0703d7631b572d20b926
+    SHA512 e7784f1b6243e7824885718bb391767685535d38a989228ad38adffe4c934d26b3a415b1cdf9480cb5790bd0d73d9380efecd56a7654b8f446b51ea0df09a095
     HEAD_REF dev
     PATCHES
-        fix_surface_token.patch
         add_install.patch
 )
 
