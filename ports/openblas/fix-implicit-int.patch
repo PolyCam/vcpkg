@@ -1,0 +1,13 @@
+diff --git a/ctest/c_sblat1c.c b/ctest/c_sblat1c.c
+index 4993d31bb..63df9fcbf 100644
+--- a/ctest/c_sblat1c.c
++++ b/ctest/c_sblat1c.c
+@@ -969,7 +969,7 @@ real *sfac;
+            1.17 };
+
+     /* Local variables */
+-    extern /* Subroutine */ srottest_();
++    extern /* Subroutine */ int srottest_();
+     static integer i__, k, ksize;
+     extern /* Subroutine */ int stest_(), srotmtest_();
+     static integer ki, kn;
