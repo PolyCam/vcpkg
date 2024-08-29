@@ -9,7 +9,10 @@ set(USER_CONFIG_TOOLSET_OPTIONS "")
 set(USER_CONFIG_EXTRA_LINES "")
 set(USER_CONFIG_REQUIREMENTS "")
 
+# Avoid forcing initialization of B2_OPTIONS here to allow some users to add custom configuration options to this command via VCPKG_CHAINLOAD_TOOLCHAIN_FILE.
+if(NOT DEFINED B2_OPTIONS)
 set(B2_OPTIONS "")
+endif()
 
 include("${VCPKG_CMAKE_VARS_FILE}")
 
@@ -44,6 +47,8 @@ elseif(VCPKG_TARGET_ARCHITECTURE MATCHES "mips64")
     list(APPEND B2_OPTIONS architecture=mips64)
 elseif("arm64" IN_LIST VCPKG_TARGET_ARCHITECTURE AND "x86_64" IN_LIST VCPKG_TARGET_ARCHITECTURE)
     list(APPEND B2_OPTIONS architecture=arm+x86)
+elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "wasm32")
+    # list(APPEND B2_OPTIONS architecture=wasm32)
 else()
     list(APPEND B2_OPTIONS architecture=x86)
 endif()
@@ -63,6 +68,8 @@ if(VCPKG_DETECTED_MSVC)
     else()
         math(EXPR USER_CONFIG_TOOLSET_VERSION "${VCPKG_DETECTED_MSVC_VERSION} / 10 - 50")
     endif()
+elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "wasm32")
+    set(USER_CONFIG_TOOLSET emscripten)
 elseif(VCPKG_DETECTED_CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(USER_CONFIG_TOOLSET clang)
 else()
@@ -235,6 +242,9 @@ if(NOT python_versions STREQUAL "")
         list(APPEND B2_OPTIONS "python-debugging=on")
     endif()
 endif()
+
+# Remove duplicates from B2_OPTIONS since VCPKG_CHAINLOAD_TOOLCHAIN_FILE may be loaded multiple times in some cases.
+list(REMOVE_DUPLICATES B2_OPTIONS)
 
 if("${PORT}" STREQUAL "boost-mpi" OR "${PORT}" STREQUAL "boost-graph-parallel")
     string(APPEND USER_CONFIG_EXTRA_LINES
